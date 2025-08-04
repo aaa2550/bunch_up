@@ -68,23 +68,59 @@ const ChatScreen = ({navigation, route}) => {
   );
 
   const renderMessage = ({item}) => {
-    const isSelf = item.userId === 1;
+    const isSelf = item.userId === 1; // 假设当前用户ID为1
+    const messageTime = new Date(item.timestamp);
+    
+    // 检查是否需要显示时间（每5分钟显示一次）
+    const shouldShowTime = shouldDisplayTime(item.timestamp);
+    
     return (
-      <View style={[styles.messageContainer, isSelf && styles.selfMessageContainer]}>
-        {!isSelf && (
-          <View style={styles.avatarContainer}>
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>{item.userName.charAt(0)}</Text>
-            </View>
+      <View key={item.id}>
+        {/* 时间显示 */}
+        {shouldShowTime && (
+          <View style={styles.timeContainer}>
+            <Text style={styles.timeText}>
+              {formatTime(item.timestamp)}
+            </Text>
           </View>
         )}
-        <View style={[styles.messageBubble, isSelf && styles.selfBubble]}>
-          {!isSelf && <Text style={styles.userName}>{item.userName}</Text>}
-          <Text style={[styles.messageText, isSelf && styles.selfText]}>{item.content}</Text>
-          <Text style={[styles.messageTime, isSelf && styles.selfTime]}>{item.time}</Text>
+        
+        {/* 消息内容 */}
+        <View style={[styles.messageContainer, isSelf && styles.selfMessageContainer]}>
+          {!isSelf && (
+            <View style={styles.avatarContainer}>
+              <View style={styles.avatar}>
+                <Text style={styles.avatarText}>{item.userName?.charAt(0) || 'U'}</Text>
+              </View>
+            </View>
+          )}
+          
+          <View style={[styles.messageBubble, isSelf && styles.selfBubble]}>
+            {!isSelf && (
+              <Text style={styles.userName}>{item.userName}</Text>
+            )}
+            <Text style={[styles.messageText, isSelf && styles.selfText]}>
+              {item.content}
+            </Text>
+          </View>
         </View>
       </View>
     );
+  };
+
+  // 检查是否应该显示时间（每5分钟显示一次）
+  const shouldDisplayTime = (timestamp) => {
+    const currentTime = new Date(timestamp);
+    const minutes = currentTime.getMinutes();
+    return minutes % 5 === 0;
+  };
+
+  // 格式化时间显示
+  const formatTime = (timestamp) => {
+    const date = new Date(timestamp);
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    return `${hours}:${minutes}`;
   };
 
   return (
@@ -389,7 +425,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderTopWidth: 1,
     borderTopColor: '#e9ecef',
-    alignItems: 'flex-end',
+    alignItems: 'center',
     backgroundColor: '#ffffff',
     minHeight: 60,
   },
@@ -397,21 +433,24 @@ const styles = StyleSheet.create({
     flex: 1,
     borderWidth: 1,
     borderColor: '#e9ecef',
-    borderRadius: 16,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
     maxHeight: 80,
     fontSize: 13,
-    marginRight: 8,
-    minHeight: 36,
+    marginRight: 12,
+    minHeight: 40,
+    textAlignVertical: 'center',
+    lineHeight: 20,
   },
   sendButton: {
     backgroundColor: '#007AFF',
-    borderRadius: 16,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    minHeight: 36,
+    borderRadius: 20,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    minHeight: 40,
     justifyContent: 'center',
+    alignItems: 'center',
   },
   sendButtonDisabled: {
     backgroundColor: '#cccccc',
@@ -423,6 +462,18 @@ const styles = StyleSheet.create({
   },
   sendButtonTextDisabled: {
     color: '#999999',
+  },
+  timeContainer: {
+    alignSelf: 'center',
+    marginBottom: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    backgroundColor: '#e0e0e0',
+    borderRadius: 10,
+  },
+  timeText: {
+    fontSize: 10,
+    color: '#666666',
   },
 });
 
