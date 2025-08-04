@@ -48,4 +48,15 @@ public class CategoryController {
             return R.error(e.getMessage());
         }
     }
+    
+    @Operation(summary = "初始化测试数据")
+    @PostMapping("/init")
+    public R<String> initTestData() {
+        try {
+            categoryService.initTestData();
+            return R.success("测试数据初始化成功");
+        } catch (Exception e) {
+            return R.error(e.getMessage());
+        }
+    }
 } 

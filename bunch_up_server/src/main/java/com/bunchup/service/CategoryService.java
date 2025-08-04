@@ -25,4 +25,9 @@ public interface CategoryService {
      * 获取所有类别
      */
     List<Category> getAll();
+    
+    /**
+     * 初始化测试数据
+     */
+    void initTestData();
 } 

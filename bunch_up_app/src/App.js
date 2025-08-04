@@ -87,7 +87,7 @@ const SimpleNavigator = () => {
   }
 
   if (currentScreen === 'Chat') {
-    return <ChatScreen navigation={navigation} category={currentCategory} />;
+    return <ChatScreen navigation={navigation} route={{params: {category: currentCategory}}} />;
   }
   
   return (

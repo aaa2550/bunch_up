@@ -82,25 +82,29 @@ const LoginScreen = ({navigation}) => {
           {/* 登录表单 */}
           <View style={styles.formContainer}>
             {/* 手机号输入 */}
-            <TextInput
-              style={styles.input}
-              placeholder="请输入手机号"
-              placeholderTextColor="#999999"
-              value={phone}
-              onChangeText={setPhone}
-              keyboardType="phone-pad"
-              maxLength={11}
-            />
+            <View style={styles.inputContainer}>
+              <TextInput
+                style={styles.input}
+                placeholder="请输入手机号"
+                placeholderTextColor="#999999"
+                value={phone}
+                onChangeText={setPhone}
+                keyboardType="phone-pad"
+                maxLength={11}
+              />
+            </View>
 
             {/* 密码输入 */}
-            <TextInput
-              style={styles.input}
-              placeholder="请输入密码"
-              placeholderTextColor="#999999"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-            />
+            <View style={styles.inputContainer}>
+              <TextInput
+                style={styles.input}
+                placeholder="请输入密码"
+                placeholderTextColor="#999999"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+              />
+            </View>
 
             {/* 登录按钮 */}
             <TouchableOpacity
@@ -129,74 +133,86 @@ const LoginScreen = ({navigation}) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f7fa',
+    backgroundColor: '#e3f2fd',
+    justifyContent: 'center',
+    alignItems: 'center',
     minHeight: '100vh',
   },
   keyboardView: {
-    flex: 1,
+    width: '100%',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 20,
   },
   content: {
     width: 400,
     maxWidth: '90%',
-    paddingHorizontal: 32,
     paddingVertical: 40,
+    paddingHorizontal: 32,
     backgroundColor: '#ffffff',
-    borderRadius: 8,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 8,
   },
   logoContainer: {
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: 32,
   },
   logoCircle: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: '#667eea',
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#1976d2',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
   },
   logoText: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: 'bold',
     color: '#ffffff',
   },
   appTitle: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: '700',
-    color: '#333333',
-    marginBottom: 8,
+    color: '#1976d2',
+    marginBottom: 4,
   },
   appSubtitle: {
     fontSize: 14,
     color: '#666666',
-    textAlign: 'center',
   },
   formContainer: {
     width: '100%',
   },
-  input: {
-    backgroundColor: '#f8f9fa',
-    borderRadius: 4,
-    paddingHorizontal: 16,
+  inputContainer: {
     paddingVertical: 12,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: '#e9ecef',
+    minHeight: 48,
+    justifyContent: 'center',
+  },
+  input: {
+    height: 48,
+    lineHeight: 48,
+    textAlignVertical: 'center',
     fontSize: 16,
     color: '#333333',
-    height: 48,
+    borderWidth: 1,
+    borderColor: '#e9ecef',
+    borderRadius: 4,
+    paddingHorizontal: 12,
   },
   loginButton: {
-    backgroundColor: '#667eea',
+    backgroundColor: '#1976d2',
     borderRadius: 4,
     paddingVertical: 16,
+    marginTop: 24,
+    marginBottom: 16,
     alignItems: 'center',
-    marginTop: 8,
-    marginBottom: 24,
   },
   loginButtonDisabled: {
     backgroundColor: '#cccccc',

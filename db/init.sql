@@ -132,22 +132,11 @@ CREATE TABLE IF NOT EXISTS `verify_code` (
 
 -- 插入类别数据
 INSERT INTO `category` (`id`, `name`, `description`, `icon`, `sort_order`) VALUES
-(1, '短视频主播', '短视频主播交流群', '/icons/short-video.png', 1);
+(1, '短视频主播', '短视频主播交流群', '/icons/short-video.png', 1),
+(2, '炒股', '股票投资交流群', '/icons/stock.png', 2),
+(3, '财经', '财经资讯交流群', '/icons/finance.png', 3),
+(4, '程序员', '程序员技术交流群', '/icons/programmer.png', 4),
+(5, '设计师', '设计师创意交流群', '/icons/designer.png', 5);
 
 -- 插入分组数据
-INSERT INTO `group` (`id`, `category_id`, `name`, `description`, `member_count`, `max_members`) VALUES
-(1, 1, '新手主播群', '新手主播交流群', 0, 500),
-(2, 1, '经验主播群', '经验主播交流群', 0, 300),
-(3, 1, 'MCN机构群', 'MCN机构交流群', 0, 200);
-
--- 插入工具数据
-INSERT INTO `tool` (`id`, `name`, `description`, `icon`, `tool_type`, `url`, `is_default`) VALUES
-(1, 'AI助手', '智能AI助手，帮助解答问题', '/icons/ai-assistant.png', 'AGENT', '/tools/ai-assistant', 1),
-(2, '数据分析', '数据分析工具', '/icons/data-analysis.png', 'NORMAL', '/tools/data-analysis', 1),
-(3, '内容生成', 'AI内容生成工具', '/icons/content-generator.png', 'AGENT', '/tools/content-generator', 0);
-
--- 插入工具展示范围数据
-INSERT INTO `tool_scope` (`tool_id`, `scope_type`, `target_id`) VALUES
-(1, 'ALL', NULL),
-(2, 'CATEGORY', 1),
-(3, 'GROUP', 1); 
+INSERT INTO `group`
