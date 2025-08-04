@@ -5,25 +5,22 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  SafeAreaView,
-  KeyboardAvoidingView,
-  Platform,
 } from 'react-native';
+import Toast from '../components/Toast';
 
 const LoginScreen = ({navigation}) => {
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState('success');
 
   const handleLogin = async () => {
-    console.log('开始登录...');
-    if (!phone.trim()) {
-      alert('请输入手机号');
-      return;
-    }
-
-    if (!password.trim()) {
-      alert('请输入密码');
+    if (!phone.trim() || !password.trim()) {
+      setToastMessage('请输入手机号和密码');
+      setToastType('warning');
+      setShowToast(true);
       return;
     }
 
@@ -35,30 +32,40 @@ const LoginScreen = ({navigation}) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          phone: phone,
-          password: password
-        })
+          phone: phone.trim(),
+          password: password,
+        }),
       });
 
       const result = await response.json();
-      
+
       if (result.code === 0) {
-        // 保存token到localStorage
-        localStorage.setItem('token', result.data.token);
-        alert('登录成功！');
+        // 登录成功
+        setToastMessage('登录成功！');
+        setToastType('success');
+        setShowToast(true);
         
-        if (navigation && navigation.reset) {
+        // 存储token
+        localStorage.setItem('token', result.data.token);
+        localStorage.setItem('user', JSON.stringify(result.data.user));
+        
+        // 延迟跳转，让用户看到成功提示
+        setTimeout(() => {
           navigation.reset({
             index: 0,
             routes: [{ name: 'Category' }],
           });
-        }
+        }, 1500);
       } else {
-        alert(result.message || '登录失败');
+        setToastMessage(result.message || '登录失败');
+        setToastType('error');
+        setShowToast(true);
       }
     } catch (error) {
-      console.error('登录失败:', error);
-      alert('登录失败，请重试');
+      console.error('登录出错:', error);
+      setToastMessage('网络错误，请重试');
+      setToastType('error');
+      setShowToast(true);
     } finally {
       setLoading(false);
     }
@@ -66,27 +73,22 @@ const LoginScreen = ({navigation}) => {
 
   return (
     <View style={styles.container}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardView}>
+      <View style={styles.keyboardView}>
         <View style={styles.content}>
-          {/* Logo区域 */}
           <View style={styles.logoContainer}>
             <View style={styles.logoCircle}>
-              <Text style={styles.logoText}>团</Text>
+              <Text style={styles.logoText}>抱</Text>
             </View>
             <Text style={styles.appTitle}>抱团</Text>
-            <Text style={styles.appSubtitle}>连接你我，共创未来</Text>
+            <Text style={styles.appSubtitle}>在线聊天和工具平台</Text>
           </View>
 
-          {/* 登录表单 */}
           <View style={styles.formContainer}>
             {/* 手机号输入 */}
             <View style={styles.inputContainer}>
               <TextInput
                 style={styles.input}
                 placeholder="请输入手机号"
-                placeholderTextColor="#999999"
                 value={phone}
                 onChangeText={setPhone}
                 keyboardType="phone-pad"
@@ -99,7 +101,6 @@ const LoginScreen = ({navigation}) => {
               <TextInput
                 style={styles.input}
                 placeholder="请输入密码"
-                placeholderTextColor="#999999"
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry
@@ -117,15 +118,22 @@ const LoginScreen = ({navigation}) => {
             </TouchableOpacity>
 
             {/* 注册链接 */}
-            <View style={styles.registerContainer}>
-              <Text style={styles.registerText}>还没有账号？</Text>
-              <TouchableOpacity onPress={() => navigation?.navigate('Register')}>
-                <Text style={styles.registerLink}>立即注册</Text>
-              </TouchableOpacity>
-            </View>
+            <TouchableOpacity
+              style={styles.registerLink}
+              onPress={() => navigation.navigate('Register')}>
+              <Text style={styles.registerLinkText}>立即注册</Text>
+            </TouchableOpacity>
           </View>
         </View>
-      </KeyboardAvoidingView>
+      </View>
+
+      {/* Toast提示 */}
+      <Toast
+        visible={showToast}
+        message={toastMessage}
+        type={toastType}
+        onHide={() => setShowToast(false)}
+      />
     </View>
   );
 };
@@ -232,6 +240,12 @@ const styles = StyleSheet.create({
     color: '#666666',
   },
   registerLink: {
+    fontSize: 14,
+    color: '#667eea',
+    fontWeight: '600',
+    marginLeft: 4,
+  },
+  registerLinkText: {
     fontSize: 14,
     color: '#667eea',
     fontWeight: '600',

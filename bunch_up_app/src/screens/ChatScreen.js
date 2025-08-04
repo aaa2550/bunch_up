@@ -89,59 +89,88 @@ const ChatScreen = ({navigation, route}) => {
 
   return (
     <View style={styles.container}>
-      {/* 头部 */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <Text style={styles.backButtonText}>‹</Text>
+      {/* 左侧程序坞菜单 */}
+      <View style={styles.dock}>
+        <TouchableOpacity style={styles.dockItem}>
+          <View style={styles.dockIcon}>
+            <Text style={styles.dockIconText}>📱</Text>
+          </View>
+          <Text style={styles.dockLabel}>工具</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>{category?.name || '聊天'}</Text>
-        <View style={styles.headerRight} />
+        
+        <TouchableOpacity style={styles.dockItem}>
+          <View style={styles.dockIcon}>
+            <Text style={styles.dockIconText}>⚙️</Text>
+          </View>
+          <Text style={styles.dockLabel}>设置</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity style={styles.dockItem}>
+          <View style={styles.dockIcon}>
+            <Text style={styles.dockIconText}>👤</Text>
+          </View>
+          <Text style={styles.dockLabel}>我的</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity style={styles.dockItem}>
+          <View style={styles.dockIcon}>
+            <Text style={styles.dockIconText}>💬</Text>
+          </View>
+          <Text style={styles.dockLabel}>消息</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity style={styles.dockItem}>
+          <View style={styles.dockIcon}>
+            <Text style={styles.dockIconText}>🔍</Text>
+          </View>
+          <Text style={styles.dockLabel}>搜索</Text>
+        </TouchableOpacity>
       </View>
 
-      {/* 主体内容 */}
-      <View style={styles.mainContent}>
-        {/* 左侧分组列表 */}
-        <View style={styles.sidebar}>
-          <View style={styles.sidebarHeader}>
-            <Text style={styles.sidebarTitle}>分组列表</Text>
-          </View>
-          <FlatList
-            data={groups}
-            renderItem={renderGroupItem}
-            keyExtractor={item => item.id.toString()}
-            showsVerticalScrollIndicator={false}
-            style={styles.groupList}
-          />
+      {/* 中间分组列表 */}
+      <View style={styles.sidebar}>
+        <View style={styles.sidebarHeader}>
+          <Text style={styles.sidebarTitle}>分组列表</Text>
         </View>
+        <FlatList
+          data={groups}
+          renderItem={renderGroupItem}
+          keyExtractor={item => item.id.toString()}
+          showsVerticalScrollIndicator={false}
+          style={styles.groupList}
+        />
+      </View>
 
-        {/* 右侧聊天窗口 */}
-        <View style={styles.chatArea}>
-          <View style={styles.chatHeader}>
-            <Text style={styles.chatTitle}>{currentGroup?.name || '选择分组'}</Text>
-            <Text style={styles.chatSubtitle}>{currentGroup?.memberCount || 0}人</Text>
-          </View>
-          
-          <ScrollView style={styles.messageList} showsVerticalScrollIndicator={false}>
-            {messages.map((item, index) => renderMessage({item}))}
-          </ScrollView>
+      {/* 右侧聊天区域 */}
+      <View style={styles.chatArea}>
+        {/* 聊天头部 */}
+        <View style={styles.chatHeader}>
+          <Text style={styles.chatTitle}>{currentGroup?.name || '选择分组'}</Text>
+          <Text style={styles.chatSubtitle}>{currentGroup?.memberCount || 0}人</Text>
+        </View>
+        
+        {/* 消息列表 */}
+        <ScrollView style={styles.messageList} showsVerticalScrollIndicator={false}>
+          {messages.map((item, index) => renderMessage({item}))}
+        </ScrollView>
 
-          <View style={styles.inputContainer}>
-            <TextInput
-              style={styles.input}
-              placeholder="输入消息..."
-              value={message}
-              onChangeText={setMessage}
-              multiline
-            />
-            <TouchableOpacity
-              style={[styles.sendButton, !message.trim() && styles.sendButtonDisabled]}
-              onPress={handleSendMessage}
-              disabled={!message.trim()}>
-              <Text style={[styles.sendButtonText, !message.trim() && styles.sendButtonTextDisabled]}>
-                发送
-              </Text>
-            </TouchableOpacity>
-          </View>
+        {/* 输入框 */}
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder="输入消息..."
+            value={message}
+            onChangeText={setMessage}
+            multiline
+          />
+          <TouchableOpacity
+            style={[styles.sendButton, !message.trim() && styles.sendButtonDisabled]}
+            onPress={handleSendMessage}
+            disabled={!message.trim()}>
+            <Text style={[styles.sendButtonText, !message.trim() && styles.sendButtonTextDisabled]}>
+              发送
+            </Text>
+          </TouchableOpacity>
         </View>
       </View>
     </View>
@@ -153,66 +182,64 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#e3f2fd',
     height: '100vh',
+    maxHeight: '100vh',
     display: 'flex',
-    flexDirection: 'column',
-  },
-  header: {
     flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingTop: 40,
-    paddingBottom: 12,
+    overflow: 'hidden',
+  },
+  dock: {
+    width: 60,
     backgroundColor: '#ffffff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e9ecef',
+    borderRightWidth: 1,
+    borderRightColor: '#e9ecef',
+    paddingVertical: 16,
+    alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: {
-      width: 0,
-      height: 2,
+      width: 2,
+      height: 0,
     },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 4,
   },
-  backButton: {
-    padding: 8,
-    marginRight: 8,
+  dockItem: {
+    alignItems: 'center',
+    marginBottom: 20,
+    paddingVertical: 8,
+    paddingHorizontal: 4,
+    borderRadius: 8,
   },
-  backButtonText: {
-    fontSize: 18,
-    color: '#007AFF',
+  dockIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 8,
+    backgroundColor: '#f0f0f0',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 4,
   },
-  headerTitle: {
-    flex: 1,
+  dockIconText: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#333333',
+  },
+  dockLabel: {
+    fontSize: 10,
+    color: '#666666',
     textAlign: 'center',
-  },
-  headerRight: {
-    width: 34,
-  },
-  mainContent: {
-    flex: 1,
-    flexDirection: 'row',
-    height: 'calc(100vh - 64px)',
-    margin: 16,
-    borderRadius: 12,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 8,
   },
   sidebar: {
     width: 280,
     backgroundColor: '#ffffff',
     borderRightWidth: 1,
     borderRightColor: '#e9ecef',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 2,
+      height: 0,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 4,
   },
   sidebarHeader: {
     paddingHorizontal: 16,
@@ -264,8 +291,23 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
     display: 'flex',
     flexDirection: 'column',
+    borderRadius: 12,
+    margin: 16,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 8,
+    overflow: 'hidden',
+    height: 'calc(100vh - 32px)',
+    maxHeight: 'calc(100vh - 32px)',
   },
   chatHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
@@ -273,10 +315,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#f8f9fa',
   },
   chatTitle: {
+    flex: 1,
     fontSize: 14,
     fontWeight: '600',
     color: '#1976d2',
-    marginBottom: 2,
   },
   chatSubtitle: {
     fontSize: 11,
@@ -349,6 +391,7 @@ const styles = StyleSheet.create({
     borderTopColor: '#e9ecef',
     alignItems: 'flex-end',
     backgroundColor: '#ffffff',
+    minHeight: 60,
   },
   input: {
     flex: 1,
@@ -360,12 +403,15 @@ const styles = StyleSheet.create({
     maxHeight: 80,
     fontSize: 13,
     marginRight: 8,
+    minHeight: 36,
   },
   sendButton: {
     backgroundColor: '#007AFF',
     borderRadius: 16,
     paddingHorizontal: 16,
     paddingVertical: 8,
+    minHeight: 36,
+    justifyContent: 'center',
   },
   sendButtonDisabled: {
     backgroundColor: '#cccccc',
