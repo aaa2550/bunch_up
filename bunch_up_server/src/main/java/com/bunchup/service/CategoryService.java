@@ -4,30 +4,17 @@ import com.bunchup.dto.Category;
 
 import java.util.List;
 
-/**
- * 类别服务接口
- * 
- * @author bunchup
- */
 public interface CategoryService {
     
-    /**
-     * 根据ID获取类别
-     */
-    Category getById(Long id);
+    List<Category> find();
     
-    /**
-     * 获取所有启用的类别
-     */
-    List<Category> getAllActive();
+    Category get(Long id);
     
-    /**
-     * 获取所有类别
-     */
-    List<Category> getAll();
+    Category save(Category category);
     
-    /**
-     * 初始化测试数据
-     */
+    Category update(Category category);
+    
+    void delete(Long id);
+    
     void initTestData();
 } 

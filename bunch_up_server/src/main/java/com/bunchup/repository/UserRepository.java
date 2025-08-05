@@ -1,31 +1,18 @@
 package com.bunchup.repository;
 
+import com.bunchup.dto.User;
 import com.bunchup.entity.UserDO;
+import com.mybatisflex.core.service.IService;
 
-/**
- * 用户Repository接口
- * 
- * @author bunchup
- */
-public interface UserRepository {
+import java.util.List;
+
+public interface UserRepository extends IService<UserDO> {
     
-    /**
-     * 根据ID获取用户
-     */
-    UserDO getById(Long id);
-    
-    /**
-     * 根据手机号获取用户
-     */
-    UserDO getByPhone(String phone);
-    
-    /**
-     * 保存用户
-     */
-    int save(UserDO user);
-    
-    /**
-     * 更新用户
-     */
-    int updateById(UserDO user);
+    User get(Long id);
+    User getByPhone(String phone);
+    List<User> find();
+    User save(User user);
+    User update(User user);
+    void delete(Long id);
+    boolean existsByPhone(String phone);
 } 

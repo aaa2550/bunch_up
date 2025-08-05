@@ -18,6 +18,9 @@ public class UserDO {
     @Schema(description = "手机号")
     private String phone;
     
+    @Schema(description = "用户名")
+    private String username;
+    
     @Schema(description = "密码")
     private String password;
     
@@ -51,6 +54,14 @@ public class UserDO {
     
     public void setPhone(String phone) {
         this.phone = phone;
+    }
+    
+    public String getUsername() {
+        return username;
+    }
+    
+    public void setUsername(String username) {
+        this.username = username;
     }
     
     public String getPassword() {

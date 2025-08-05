@@ -1,46 +1,58 @@
 package com.bunchup.repository.impl;
 
+import com.bunchup.convert.CategoryConverter;
+import com.bunchup.dto.Category;
 import com.bunchup.entity.CategoryDO;
 import com.bunchup.mapper.CategoryMapper;
 import com.bunchup.repository.CategoryRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.mybatisflex.spring.service.impl.ServiceImpl;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-/**
- * 类别Repository实现类
- * 
- * @author bunchup
- */
 @Repository
-public class CategoryRepositoryImpl implements CategoryRepository {
-    
-    @Autowired
-    private CategoryMapper categoryMapper;
+public class CategoryRepositoryImpl extends ServiceImpl<CategoryMapper, CategoryDO> implements CategoryRepository {
     
     @Override
-    public CategoryDO getById(Long id) {
-        return categoryMapper.selectById(id);
+    public List<Category> find() {
+        List<CategoryDO> categoryDOList = queryChain()
+            .where(CategoryDO::getStatus).eq(1)
+            .orderBy(CategoryDO::getSortOrder).asc()
+            .list();
+        return CategoryConverter.INSTANCE.convertToDTO(categoryDOList);
     }
     
     @Override
-    public List<CategoryDO> getAllActive() {
-        return categoryMapper.selectAllActive();
+    public Category get(Long id) {
+        CategoryDO categoryDO = queryChain()
+            .where(CategoryDO::getId).eq(id)
+            .one();
+        return CategoryConverter.INSTANCE.convertToDTO(categoryDO);
     }
     
     @Override
-    public List<CategoryDO> getAll() {
-        return categoryMapper.selectAll();
+    public Category save(Category category) {
+        CategoryDO categoryDO = CategoryConverter.INSTANCE.convertToDO(category);
+        super.save(categoryDO);
+        return CategoryConverter.INSTANCE.convertToDTO(categoryDO);
     }
     
     @Override
-    public int save(CategoryDO category) {
-        return categoryMapper.insert(category);
+    public Category update(Category category) {
+        updateChain()
+            .set(CategoryDO::getName, category.getName())
+            .set(CategoryDO::getIcon, category.getIcon())
+            .set(CategoryDO::getSortOrder, category.getSortOrder())
+            .set(CategoryDO::getStatus, category.getStatus())
+            .where(CategoryDO::getId).eq(category.getId())
+            .update();
+        return category;
     }
     
     @Override
-    public int updateById(CategoryDO category) {
-        return categoryMapper.updateById(category);
+    public void delete(Long id) {
+        updateChain()
+            .where(CategoryDO::getId).eq(id)
+            .remove();
     }
 } 

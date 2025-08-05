@@ -1,38 +1,16 @@
 package com.bunchup.repository;
 
+import com.bunchup.dto.Category;
 import com.bunchup.entity.CategoryDO;
+import com.mybatisflex.core.service.IService;
 
 import java.util.List;
 
-/**
- * 类别Repository接口
- * 
- * @author bunchup
- */
-public interface CategoryRepository {
+public interface CategoryRepository extends IService<CategoryDO> {
     
-    /**
-     * 根据ID获取类别
-     */
-    CategoryDO getById(Long id);
-    
-    /**
-     * 获取所有启用的类别
-     */
-    List<CategoryDO> getAllActive();
-    
-    /**
-     * 获取所有类别
-     */
-    List<CategoryDO> getAll();
-    
-    /**
-     * 保存类别
-     */
-    int save(CategoryDO category);
-    
-    /**
-     * 更新类别
-     */
-    int updateById(CategoryDO category);
+    List<Category> find();
+    Category get(Long id);
+    Category save(Category category);
+    Category update(Category category);
+    void delete(Long id);
 } 

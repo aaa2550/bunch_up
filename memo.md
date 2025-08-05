@@ -186,3 +186,63 @@
   - 使用 `alignItems: 'center'` 确保输入框和按钮水平对齐
 - **效果**: 聊天界面更加简洁，输入区域视觉统一
 - **状态**: ✅ 修复完成 
+
+### 后端Java代码规范修改 (2024-08-04 更新)
+- **转换器层规范**:
+  - 创建了 `UserConverter` 和 `CategoryConverter` 转换器类
+  - 使用MapStruct框架进行DO与DTO转换
+  - 遵循命名规范：`convertToDTO` 和 `convertToDO` 方法
+  - 包含单个对象、列表、分页的转换方法
+- **Repository层规范**:
+  - 修改 `UserRepository` 和 `CategoryRepository` 接口
+  - 继承 `IService<Entity>` 而不是直接操作DO
+  - 使用转换器进行DO与DTO转换
+  - 遵循命名规范：`find`(查多条)、`get`(查单条)、`save`、`update`、`delete`
+  - 使用 `queryChain()` 和 `updateChain()` 方法，禁止原生SQL
+- **Service层规范**:
+  - 修改 `UserService` 和 `CategoryService` 接口
+  - 移除所有DO类，只使用DTO
+  - 移除异常捕获和日志记录
+  - 所有异常向上抛出，由Spring统一处理
+- **Controller层规范**:
+  - 修改 `AuthController` 和 `CategoryController`
+  - 移除所有异常捕获和日志记录
+  - 使用新的Service接口方法
+  - 统一使用 `R.ok()` 和 `R.error()` 方法
+- **Mapper层规范**:
+  - 修改 `UserMapper` 和 `CategoryMapper`
+  - 只继承 `BaseMapper<EntityDO>`，移除所有SQL语句
+  - 禁止使用 `@Select`、`@Insert`、`@Update` 等注解
+- **DTO层规范**:
+  - 修改 `User` DTO类，添加 `password` 字段
+  - 使用 `@Data` 注解自动生成getter/setter
+  - 修改 `R` 类，添加 `ok()` 方法
+- **异常处理规范**:
+  - 所有业务代码不允许捕获异常
+  - 所有异常必须向上抛出
+  - 只在Spring统一异常处理中记录error日志
+- **日志规范**:
+  - 所有层不允许出现日志记录
+  - 只在异常处理时有error日志
+- **状态**: ✅ 修复完成
+
+### 后端Java代码依赖修复 (2024-08-04 更新)
+- **依赖修复**:
+  - 添加了MyBatis-Flex依赖：`mybatis-flex-spring-boot-starter`
+  - 添加了MapStruct依赖：`mapstruct` 和 `mapstruct-processor`
+  - 添加了Lombok依赖：`lombok`
+  - 修复了版本兼容性问题
+- **Repository层修复**:
+  - 移除了 `IService` 继承，改为直接实现接口
+  - 移除了 `ServiceImpl` 继承，改为直接实现接口
+  - 使用 `DO::getXXX` 方式映射，移除TableDef引用
+  - 修复了Mapper方法调用，使用正确的方法名
+- **实体类修复**:
+  - 在 `UserDO` 中添加了 `username` 字段和对应的getter/setter
+- **编译和启动**:
+  - ✅ 编译成功，无错误
+  - ✅ 应用正常启动，进程ID: 42648
+  - ✅ API接口正常响应
+  - ✅ 类别列表接口返回数据正常
+  - ✅ 登录接口正常响应（用户不存在时返回错误信息）
+- **状态**: ✅ 修复完成，应用正常运行 

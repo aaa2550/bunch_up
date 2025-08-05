@@ -23,40 +23,24 @@ public class CategoryController {
     @Autowired
     private CategoryService categoryService;
     
-    @Operation(summary = "获取所有启用的类别")
+    @Operation(summary = "获取类别列表")
     @GetMapping("/list")
     public R<List<Category>> getCategoryList() {
-        try {
-            List<Category> categories = categoryService.getAllActive();
-            return R.success(categories);
-        } catch (Exception e) {
-            return R.error(e.getMessage());
-        }
+        List<Category> categories = categoryService.find();
+        return R.ok(categories);
     }
     
     @Operation(summary = "根据ID获取类别")
     @GetMapping("/{id}")
     public R<Category> getCategoryById(@PathVariable Long id) {
-        try {
-            Category category = categoryService.getById(id);
-            if (category != null) {
-                return R.success(category);
-            } else {
-                return R.error("类别不存在");
-            }
-        } catch (Exception e) {
-            return R.error(e.getMessage());
-        }
+        Category category = categoryService.get(id);
+        return R.ok(category);
     }
     
     @Operation(summary = "初始化测试数据")
     @PostMapping("/init")
     public R<String> initTestData() {
-        try {
-            categoryService.initTestData();
-            return R.success("测试数据初始化成功");
-        } catch (Exception e) {
-            return R.error(e.getMessage());
-        }
+        categoryService.initTestData();
+        return R.ok("测试数据初始化成功");
     }
 } 
