@@ -1,6 +1,18 @@
 {
+  "name": "bunch_up",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "webpack-dev-server --mode=development",
+    "build": "webpack --mode=production",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
   "devDependencies": {
     "webpack-cli": "^6.0.1",
     "webpack-dev-server": "^5.2.2"
+  },
+  "dependencies": {
+    "@stomp/stompjs": "^7.1.1",
+    "sockjs-client": "^1.6.1"
   }
 }
