@@ -9,7 +9,7 @@ import {
   ScrollView,
 } from 'react-native';
 import useWebSocket from '../hooks/useWebSocket';
-import { fetchGroupsByCategory } from '../api/chatAPI';
+import { fetchGroupsByCategory, fetchMessagesByGroup } from '../api/chatAPI';
 
 const ChatScreen = ({ navigation, route }) => {
   const { category } = route.params || {};
@@ -20,8 +20,9 @@ const ChatScreen = ({ navigation, route }) => {
   const scrollViewRef = useRef();
   const subscription = useRef(null);
 
-  // TODO: Replace with actual user info from auth context/store
-  const currentUser = { id: 1, name: '我' };
+  // 获取当前登录用户信息
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const currentUser = { id: user.id, name: user.nickname || user.name || '' };
 
   const { isConnected, subscribe, sendMessage } = useWebSocket('http://localhost:8080/ws');
 
@@ -48,26 +49,36 @@ const ChatScreen = ({ navigation, route }) => {
     }
   }, [messages]);
 
-  const handleGroupSelect = (group) => {
-    if (currentGroup?.id === group.id) return;
-    
-    // TODO: Replace with actual API call to get chat history for the group
-    setMessages([]); // Clear messages when switching groups
-    setCurrentGroup(group);
-
-    if (isConnected) {
-        if (subscription.current) {
-            subscription.current.unsubscribe();
-            sendMessage('/app/chat.leave', { groupId: currentGroup.id, userName: currentUser.name });
-        }
-        
-        subscription.current = subscribe(`/topic/chat/${group.id}`, (receivedMessage) => {
-             if (receivedMessage.type === 'CHAT' && receivedMessage.data.groupId === group.id) {
-                setMessages((prevMessages) => [...prevMessages, receivedMessage.data]);
-            }
+  // 订阅WebSocket消息，依赖currentGroup和isConnected
+  useEffect(() => {
+    if (!currentGroup || !isConnected) return;
+    if (subscription.current) {
+      subscription.current.unsubscribe();
+      sendMessage('/app/chat.leave', { groupId: currentGroup.id, userName: currentUser.name });
+    }
+    subscription.current = subscribe(`/topic/chat/${currentGroup.id}`, (receivedMessage) => {
+      if (receivedMessage.type === 'CHAT' && receivedMessage.data.groupId === currentGroup.id) {
+        setMessages((prevMessages) => {
+          if (prevMessages.some(m => m.id === receivedMessage.data.id && m.content === receivedMessage.data.content)) {
+            return prevMessages;
+          }
+          return [...prevMessages, receivedMessage.data];
         });
+      }
+    });
+    sendMessage('/app/chat.join', { groupId: currentGroup.id, userName: currentUser.name });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentGroup, isConnected]);
 
-        sendMessage('/app/chat.join', { groupId: group.id, userName: currentUser.name });
+  const handleGroupSelect = async (group) => {
+    if (currentGroup?.id === group.id) return;
+    setCurrentGroup(group);
+    // 拉取历史消息
+    try {
+      const history = await fetchMessagesByGroup(group.id);
+      setMessages(history || []);
+    } catch (e) {
+      setMessages([]);
     }
   };
 
@@ -78,10 +89,9 @@ const ChatScreen = ({ navigation, route }) => {
         userId: currentUser.id,
         userName: currentUser.name,
         content: message.trim(),
+        messageType: 1,
       };
       sendMessage('/app/chat.send', newMessage);
-      // Optimistically add to messages list
-      setMessages((prevMessages) => [...prevMessages, {...newMessage, sendTime: new Date().toISOString(), id: Date.now()}]);
       setMessage('');
     }
   };
@@ -106,25 +116,35 @@ const ChatScreen = ({ navigation, route }) => {
   );
 
   const renderMessage = ({ item }) => {
-    const isSelf = item.userId === currentUser.id;
+    const isSelf = String(item.userId) === String(currentUser.id);
     return (
-        <View style={[styles.messageContainer, isSelf && styles.selfMessageContainer]}>
-          {!isSelf && (
-            <View style={styles.avatarContainer}>
-              <View style={styles.avatar}>
-                <Text style={styles.avatarText}>{item.userName?.charAt(0) || 'U'}</Text>
-              </View>
+      <View style={[
+        styles.messageContainer,
+        isSelf ? styles.selfMessageContainer : styles.otherMessageContainer
+      ]}>
+        {!isSelf && (
+          <View style={styles.avatarContainer}>
+            <View style={styles.avatar}>
+              <Text style={styles.avatarText}>{item.userName?.charAt(0) || 'U'}</Text>
             </View>
-          )}
-          <View style={[styles.messageBubble, isSelf ? styles.selfBubble : {}]}>
-            {!isSelf && (
-              <Text style={styles.userName}>{item.userName}</Text>
-            )}
-            <Text style={[styles.messageText, isSelf && styles.selfText]}>
-              {item.content}
-            </Text>
           </View>
+        )}
+        <View style={[styles.messageBubble, isSelf ? styles.selfBubble : {}]}>
+          {!isSelf && (
+            <Text style={styles.userName}>{item.userName}</Text>
+          )}
+          <Text style={[styles.messageText, isSelf && styles.selfText]}>
+            {item.content}
+          </Text>
         </View>
+        {isSelf && (
+          <View style={styles.avatarContainer}>
+            <View style={styles.avatar}>
+              <Text style={styles.avatarText}>{item.userName?.charAt(0) || 'U'}</Text>
+            </View>
+          </View>
+        )}
+      </View>
     );
   };
 
@@ -354,6 +374,9 @@ const styles = StyleSheet.create({
   },
   selfMessageContainer: {
     justifyContent: 'flex-end',
+  },
+  otherMessageContainer: {
+    justifyContent: 'flex-start',
   },
   avatarContainer: {
     marginRight: 8,

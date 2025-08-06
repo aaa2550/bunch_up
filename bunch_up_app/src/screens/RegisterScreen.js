@@ -9,6 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import Toast from '../components/Toast';
 
 const RegisterScreen = ({navigation}) => {
   const [phone, setPhone] = useState('');
@@ -17,26 +18,25 @@ const RegisterScreen = ({navigation}) => {
   const [verifyCode, setVerifyCode] = useState('');
   const [countdown, setCountdown] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState('success');
 
   const handleRegister = async () => {
     if (!phone.trim()) {
-      alert('请输入手机号');
-      return;
+      setToastMessage('请输入手机号'); setToastType('warning'); setShowToast(true); return;
     }
 
     if (!password.trim()) {
-      alert('请输入密码');
-      return;
+      setToastMessage('请输入密码'); setToastType('warning'); setShowToast(true); return;
     }
 
     if (password !== confirmPassword) {
-      alert('两次输入的密码不一致');
-      return;
+      setToastMessage('两次输入的密码不一致'); setToastType('warning'); setShowToast(true); return;
     }
 
     if (!verifyCode.trim()) {
-      alert('请输入验证码');
-      return;
+      setToastMessage('请输入验证码'); setToastType('warning'); setShowToast(true); return;
     }
 
     setLoading(true);
@@ -56,14 +56,13 @@ const RegisterScreen = ({navigation}) => {
       const result = await response.json();
       
       if (result.code === 0) {
-        alert('注册成功！');
-        navigation?.replace('Login');
+        setToastMessage('注册成功！'); setToastType('success'); setShowToast(true);
+        setTimeout(() => { navigation?.replace('Login'); }, 1500);
       } else {
-        alert(result.message || '注册失败');
+        setToastMessage(result.message || '注册失败'); setToastType('error'); setShowToast(true);
       }
     } catch (error) {
-      console.error('注册失败:', error);
-      alert('注册失败，请重试');
+      setToastMessage('注册失败，请重试'); setToastType('error'); setShowToast(true);
     } finally {
       setLoading(false);
     }
@@ -71,8 +70,7 @@ const RegisterScreen = ({navigation}) => {
 
   const handleSendCode = async () => {
     if (!phone.trim()) {
-      alert('请输入手机号');
-      return;
+      setToastMessage('请输入手机号'); setToastType('warning'); setShowToast(true); return;
     }
 
     if (countdown > 0) {
@@ -92,7 +90,7 @@ const RegisterScreen = ({navigation}) => {
       const result = await response.json();
       
       if (result.code === 0) {
-        alert('验证码已发送');
+        setToastMessage('验证码已发送'); setToastType('success'); setShowToast(true);
       setCountdown(60);
       const timer = setInterval(() => {
         setCountdown(prev => {
@@ -104,20 +102,20 @@ const RegisterScreen = ({navigation}) => {
         });
       }, 1000);
       } else {
-        alert(result.message || '发送验证码失败');
+        setToastMessage(result.message || '发送验证码失败'); setToastType('error'); setShowToast(true);
       }
     } catch (error) {
-      console.error('发送验证码失败:', error);
-      alert('发送验证码失败，请重试');
+      setToastMessage('发送验证码失败，请重试'); setToastType('error'); setShowToast(true);
     }
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={{flex: 1, backgroundColor: '#f5f5f5'}}>
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardView}>
-        <View style={styles.content}>
+        style={{flex: 1}}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <View style={styles.container}>
           {/* Logo区域 */}
           <View style={styles.logoContainer}>
             <View style={styles.logoCircle}>
@@ -206,8 +204,14 @@ const RegisterScreen = ({navigation}) => {
             </View>
           </View>
         </View>
+        <Toast
+          visible={showToast}
+          message={toastMessage}
+          type={toastType}
+          onHide={() => setShowToast(false)}
+        />
       </KeyboardAvoidingView>
-    </View>
+    </SafeAreaView>
   );
 };
 
