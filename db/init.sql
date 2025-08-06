@@ -34,20 +34,22 @@ CREATE TABLE IF NOT EXISTS `category` (
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='类别表';
 
--- 分组表
-CREATE TABLE IF NOT EXISTS `group` (
-    `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '分组ID',
-    `category_id` BIGINT NOT NULL COMMENT '所属类别ID',
-    `name` VARCHAR(50) NOT NULL COMMENT '分组名称',
-    `description` VARCHAR(255) DEFAULT NULL COMMENT '分组描述',
-    `member_count` INT DEFAULT 0 COMMENT '成员数量',
-    `max_members` INT DEFAULT 500 COMMENT '最大成员数',
-    `status` TINYINT DEFAULT 1 COMMENT '状态：1-正常，0-禁用',
-    `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    PRIMARY KEY (`id`),
-    KEY `idx_category_id` (`category_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='分组表';
+-- 聊天群组表
+CREATE TABLE IF NOT EXISTS `chat_group` (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '群组ID',
+  `name` varchar(100) NOT NULL COMMENT '群组名称',
+  `description` varchar(500) DEFAULT NULL COMMENT '群组描述',
+  `avatar` varchar(255) DEFAULT NULL COMMENT '群组头像',
+  `category_id` bigint NOT NULL COMMENT '类别ID',
+  `member_count` INT DEFAULT 0 COMMENT '成员数量',
+  `max_members` INT DEFAULT 500 COMMENT '最大成员数',
+  `status` tinyint NOT NULL DEFAULT '1' COMMENT '群组状态：1-正常，0-禁用',
+  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_category_id` (`category_id`),
+  KEY `idx_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='聊天群组表';
 
 -- 用户分组关系表
 CREATE TABLE IF NOT EXISTS `user_group` (
@@ -63,18 +65,19 @@ CREATE TABLE IF NOT EXISTS `user_group` (
 
 -- 聊天消息表
 CREATE TABLE IF NOT EXISTS `chat_message` (
-    `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '消息ID',
-    `group_id` BIGINT NOT NULL COMMENT '分组ID',
-    `user_id` BIGINT NOT NULL COMMENT '发送用户ID',
-    `content` TEXT NOT NULL COMMENT '消息内容',
-    `message_type` VARCHAR(20) DEFAULT 'TEXT' COMMENT '消息类型：TEXT-文本，IMAGE-图片，VOICE-语音',
-    `status` TINYINT DEFAULT 1 COMMENT '状态：1-正常，0-删除',
-    `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '发送时间',
-    PRIMARY KEY (`id`),
-    KEY `idx_group_id` (`group_id`),
-    KEY `idx_user_id` (`user_id`),
-    KEY `idx_create_time` (`create_time`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='聊天消息表';
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '消息ID',
+  `user_id` bigint NOT NULL COMMENT '发送者ID',
+  `group_id` bigint NOT NULL COMMENT '群组ID',
+  `content` text NOT NULL COMMENT '消息内容',
+  `message_type` tinyint NOT NULL DEFAULT '1' COMMENT '消息类型：1-文本，2-图片，3-文件',
+  `send_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '发送时间',
+  `status` tinyint NOT NULL DEFAULT '1' COMMENT '消息状态：1-正常，0-已删除',
+  PRIMARY KEY (`id`),
+  KEY `idx_group_id` (`group_id`),
+  KEY `idx_user_id` (`user_id`),
+  KEY `idx_send_time` (`send_time`),
+  KEY `idx_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='聊天消息表';
 
 -- 工具表
 CREATE TABLE IF NOT EXISTS `tool` (
@@ -136,7 +139,42 @@ INSERT INTO `category` (`id`, `name`, `description`, `icon`, `sort_order`) VALUE
 (2, '炒股', '股票投资交流群', '/icons/stock.png', 2),
 (3, '财经', '财经资讯交流群', '/icons/finance.png', 3),
 (4, '程序员', '程序员技术交流群', '/icons/programmer.png', 4),
-(5, '设计师', '设计师创意交流群', '/icons/designer.png', 5);
+(5, '设计师', '设计师创意交流群', '/icons/designer.png', 5)
+ON DUPLICATE KEY UPDATE name=VALUES(name), description=VALUES(description), icon=VALUES(icon), sort_order=VALUES(sort_order);
 
--- 插入分组数据
-INSERT INTO `group`
+-- 插入聊天群组数据
+INSERT INTO `chat_group` (`id`, `name`, `description`, `avatar`, `category_id`, `status`, `member_count`) VALUES
+(1, '短视频主播交流群', '分享短视频创作经验，讨论拍摄技巧和内容创作', '/icons/group-1.png', 1, 1, 5),
+(2, '直播技巧分享群', '直播技巧和经验分享，提升直播效果', '/icons/group-2.png', 1, 1, 0),
+(3, '股票投资交流群', '股票投资技术分析，市场趋势讨论', '/icons/group-3.png', 2, 1, 5),
+(4, '基金投资讨论群', '基金投资经验分享，投资策略讨论', '/icons/group-4.png', 2, 1, 0),
+(5, '财经资讯群', '财经新闻资讯分享，经济政策解读', '/icons/group-5.png', 3, 1, 5),
+(6, '经济政策讨论群', '经济政策解读讨论，宏观经济分析', '/icons/group-6.png', 3, 1, 0),
+(7, '程序员技术交流群', '技术问题讨论和分享，编程经验交流', '/icons/group-7.png', 4, 1, 5),
+(8, '前端开发交流群', '前端技术交流，框架和工具分享', '/icons/group-8.png', 4, 1, 0),
+(9, '设计师创意交流群', '设计创意分享，设计理念讨论', '/icons/group-9.png', 5, 1, 5),
+(10, 'UI设计讨论群', 'UI设计经验分享，设计工具使用', '/icons/group-10.png', 5, 1, 0)
+ON DUPLICATE KEY UPDATE name=VALUES(name), description=VALUES(description), avatar=VALUES(avatar), category_id=VALUES(category_id), status=VALUES(status), member_count=VALUES(member_count);
+
+-- 插入测试用户数据
+INSERT INTO `user` (`id`, `phone`, `password`, `nickname`, `avatar`, `current_category_id`, `status`) VALUES
+(1, '13800138001', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVEFDa', '张三', '/avatars/user1.png', 1, 1),
+(2, '13800138002', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVEFDa', '李四', '/avatars/user2.png', 2, 1),
+(3, '13800138003', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVEFDa', '王五', '/avatars/user3.png', 3, 1),
+(4, '13800138004', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVEFDa', '赵六', '/avatars/user4.png', 4, 1),
+(5, '13800138005', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVEFDa', '钱七', '/avatars/user5.png', 5, 1)
+ON DUPLICATE KEY UPDATE phone=VALUES(phone), password=VALUES(password), nickname=VALUES(nickname), avatar=VALUES(avatar), current_category_id=VALUES(current_category_id), status=VALUES(status);
+
+-- 插入用户分组关系数据
+INSERT INTO `user_group` (`user_id`, `group_id`) VALUES
+(1, 1), (1, 3), (1, 5), (1, 7), (1, 9),
+(2, 1), (2, 3), (2, 5), (2, 7), (2, 9),
+(3, 1), (3, 3), (3, 5), (3, 7), (3, 9),
+(4, 1), (4, 3), (4, 5), (4, 7), (4, 9),
+(5, 1), (5, 3), (5, 5), (5, 7), (5, 9)
+ON DUPLICATE KEY UPDATE user_id=VALUES(user_id), group_id=VALUES(group_id);
+
+-- 其他插入语句...
+
+-- 初始化完成提示
+SELECT '数据库初始化完成！' AS message;

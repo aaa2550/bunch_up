@@ -10,6 +10,7 @@ import java.util.List;
 
 @Mapper
 public interface UserConverter {
+
     UserConverter INSTANCE = Mappers.getMapper(UserConverter.class);
     
     User convertToDTO(UserDO obj);
@@ -17,4 +18,5 @@ public interface UserConverter {
     Page<User> convertToDTO(Page<UserDO> page);
     UserDO convertToDO(User obj);
     List<UserDO> convertToDO(List<User> list);
+
 } 

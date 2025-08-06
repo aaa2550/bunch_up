@@ -15,7 +15,7 @@ class ErrorBoundary extends React.Component {
 
   static getDerivedStateFromError(error) {
     return { hasError: true, error };
-  }
+      }
 
   componentDidCatch(error, errorInfo) {
     console.error('App Error Boundary caught an error:', error, errorInfo);
@@ -23,7 +23,7 @@ class ErrorBoundary extends React.Component {
 
   render() {
     if (this.state.hasError) {
-      return (
+  return (
         <div style={{
           display: 'flex',
           flexDirection: 'column',
@@ -40,7 +40,7 @@ class ErrorBoundary extends React.Component {
             {this.state.error?.toString()}
           </pre>
         </div>
-      );
+  );
     }
 
     return this.props.children;
@@ -76,8 +76,8 @@ const SimpleNavigator = () => {
 
   if (currentScreen === 'Login') {
     return <LoginScreen navigation={navigation} />;
-  }
-  
+    }
+    
   if (currentScreen === 'Register') {
     return <RegisterScreen navigation={navigation} />;
   }
@@ -88,8 +88,8 @@ const SimpleNavigator = () => {
 
   if (currentScreen === 'Chat') {
     return <ChatScreen navigation={navigation} route={{params: {category: currentCategory}}} />;
-  }
-  
+    }
+
   return (
     <div style={{
       display: 'flex',

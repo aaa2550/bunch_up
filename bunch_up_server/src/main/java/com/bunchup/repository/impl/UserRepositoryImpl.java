@@ -46,7 +46,6 @@ public class UserRepositoryImpl extends ServiceImpl<UserMapper, UserDO> implemen
     @Override
     public User update(User user) {
         updateChain()
-            .set(UserDO::getUsername, user.getUsername())
             .set(UserDO::getPhone, user.getPhone())
             .set(UserDO::getPassword, user.getPassword())
             .set(UserDO::getNickname, user.getNickname())

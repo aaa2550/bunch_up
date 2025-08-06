@@ -15,10 +15,10 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
-    
+
     @Autowired
     private UserService userService;
-    
+
     @Operation(summary = "用户注册")
     @PostMapping("/register")
     public R<User> register(@RequestBody RegisterRequest request) {
@@ -26,31 +26,27 @@ public class AuthController {
         user.setPhone(request.getPhone());
         user.setPassword(request.getPassword());
         user.setNickname("用户" + request.getPhone().substring(7));
-        
+
         User registeredUser = userService.register(user);
         return R.ok(registeredUser);
     }
-    
+
     @Operation(summary = "用户登录")
     @PostMapping("/login")
     public R<LoginResponse> login(@RequestBody LoginRequest request) {
         User user = userService.login(request.getPhone(), request.getPassword());
-        
+
         LoginResponse response = new LoginResponse();
         response.setUser(user);
         response.setToken("token_" + user.getId() + "_" + System.currentTimeMillis());
-        
+
         return R.ok(response);
     }
-    
+
     @Operation(summary = "发送验证码")
     @PostMapping("/sendVerifyCode")
-    public R<String> sendVerifyCode(@RequestParam String phone) {
-        boolean success = userService.sendVerifyCode(phone);
-        if (success) {
-            return R.ok("验证码发送成功");
-        } else {
-            return R.error("验证码发送失败");
-        }
+    public R<String> sendVerifyCode(@RequestParam String phone, @RequestParam(required = false) String type) {
+        userService.sendVerifyCode(phone);
+        return R.ok("验证码发送成功");
     }
 } 

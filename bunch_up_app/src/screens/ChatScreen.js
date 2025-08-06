@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -8,54 +8,92 @@ import {
   TextInput,
   ScrollView,
 } from 'react-native';
+import useWebSocket from '../hooks/useWebSocket';
+import { fetchGroupsByCategory } from '../api/chatAPI';
 
-const ChatScreen = ({navigation, route}) => {
-  const {category} = route.params || {};
+const ChatScreen = ({ navigation, route }) => {
+  const { category } = route.params || {};
   const [currentGroup, setCurrentGroup] = useState(null);
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState([]);
   const [groups, setGroups] = useState([]);
+  const scrollViewRef = useRef();
+  const subscription = useRef(null);
+
+  // TODO: Replace with actual user info from auth context/store
+  const currentUser = { id: 1, name: '我' };
+
+  const { isConnected, subscribe, sendMessage } = useWebSocket('http://localhost:8080/ws');
 
   useEffect(() => {
-    // 模拟分组数据
-    const mockGroups = [
-      {id: 1, name: '新手主播群', memberCount: 125, lastMessage: '欢迎新朋友加入！'},
-      {id: 2, name: '经验主播群', memberCount: 89, lastMessage: '今天直播效果不错'},
-      {id: 3, name: 'MCN机构群', memberCount: 45, lastMessage: '有新的合作机会'},
-    ];
-    setGroups(mockGroups);
-    setCurrentGroup(mockGroups[0]);
+    if (!category?.id) return;
+    let isMounted = true;
+    (async () => {
+      try {
+        const groupList = await fetchGroupsByCategory(category.id);
+        if (isMounted) {
+          setGroups(groupList);
+          if (groupList.length > 0) handleGroupSelect(groupList[0]);
+        }
+      } catch (e) {
+        setGroups([]);
+      }
+    })();
+    return () => { isMounted = false; };
+  }, [category, isConnected]);
 
-    // 模拟消息数据
-    const mockMessages = [
-      {id: 1, userId: 1, userName: '主播小王', content: '大家好，我是新来的主播', time: '14:30'},
-      {id: 2, userId: 2, userName: '经验主播', content: '欢迎新朋友！有什么问题可以问我', time: '14:32'},
-      {id: 3, userId: 1, userName: '主播小王', content: '谢谢！我想了解一下直播技巧', time: '14:33'},
-      {id: 4, userId: 3, userName: 'MCN小李', content: '我们机构可以提供专业培训', time: '14:35'},
-    ];
-    setMessages(mockMessages);
-  }, [category]);
+  useEffect(() => {
+    if (scrollViewRef.current) {
+        scrollViewRef.current.scrollToEnd({ animated: true });
+    }
+  }, [messages]);
 
-  const handleSendMessage = () => {
-    if (message.trim()) {
-      const newMessage = {
-        id: Date.now(),
-        userId: 1,
-        userName: '我',
-        content: message.trim(),
-        time: new Date().toLocaleTimeString('zh-CN', {hour: '2-digit', minute: '2-digit'}),
-      };
-      setMessages([...messages, newMessage]);
-      setMessage('');
+  const handleGroupSelect = (group) => {
+    if (currentGroup?.id === group.id) return;
+    
+    // TODO: Replace with actual API call to get chat history for the group
+    setMessages([]); // Clear messages when switching groups
+    setCurrentGroup(group);
+
+    if (isConnected) {
+        if (subscription.current) {
+            subscription.current.unsubscribe();
+            sendMessage('/app/chat.leave', { groupId: currentGroup.id, userName: currentUser.name });
+        }
+        
+        subscription.current = subscribe(`/topic/chat/${group.id}`, (receivedMessage) => {
+             if (receivedMessage.type === 'CHAT' && receivedMessage.data.groupId === group.id) {
+                setMessages((prevMessages) => [...prevMessages, receivedMessage.data]);
+            }
+        });
+
+        sendMessage('/app/chat.join', { groupId: group.id, userName: currentUser.name });
     }
   };
 
-  const handleGroupSelect = (group) => {
-    setCurrentGroup(group);
-    // 这里可以加载对应群组的消息
+  const handleSendMessage = () => {
+    if (message.trim() && currentGroup && isConnected) {
+      const newMessage = {
+        groupId: currentGroup.id,
+        userId: currentUser.id,
+        userName: currentUser.name,
+        content: message.trim(),
+      };
+      sendMessage('/app/chat.send', newMessage);
+      // Optimistically add to messages list
+      setMessages((prevMessages) => [...prevMessages, {...newMessage, sendTime: new Date().toISOString(), id: Date.now()}]);
+      setMessage('');
+    }
+  };
+  
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        handleSendMessage();
+    }
   };
 
-  const renderGroupItem = ({item}) => (
+  const renderGroupItem = ({ item }) => (
     <TouchableOpacity
       style={[styles.groupItem, currentGroup?.id === item.id && styles.activeGroupItem]}
       onPress={() => handleGroupSelect(item)}>
@@ -67,25 +105,9 @@ const ChatScreen = ({navigation, route}) => {
     </TouchableOpacity>
   );
 
-  const renderMessage = ({item}) => {
-    const isSelf = item.userId === 1; // 假设当前用户ID为1
-    const messageTime = new Date(item.timestamp);
-    
-    // 检查是否需要显示时间（每5分钟显示一次）
-    const shouldShowTime = shouldDisplayTime(item.timestamp);
-    
+  const renderMessage = ({ item }) => {
+    const isSelf = item.userId === currentUser.id;
     return (
-      <View key={item.id}>
-        {/* 时间显示 */}
-        {shouldShowTime && (
-          <View style={styles.timeContainer}>
-            <Text style={styles.timeText}>
-              {formatTime(item.timestamp)}
-            </Text>
-          </View>
-        )}
-        
-        {/* 消息内容 */}
         <View style={[styles.messageContainer, isSelf && styles.selfMessageContainer]}>
           {!isSelf && (
             <View style={styles.avatarContainer}>
@@ -94,8 +116,7 @@ const ChatScreen = ({navigation, route}) => {
               </View>
             </View>
           )}
-          
-          <View style={[styles.messageBubble, isSelf && styles.selfBubble]}>
+          <View style={[styles.messageBubble, isSelf ? styles.selfBubble : {}]}>
             {!isSelf && (
               <Text style={styles.userName}>{item.userName}</Text>
             )}
@@ -104,66 +125,35 @@ const ChatScreen = ({navigation, route}) => {
             </Text>
           </View>
         </View>
-      </View>
     );
-  };
-
-  // 检查是否应该显示时间（每5分钟显示一次）
-  const shouldDisplayTime = (timestamp) => {
-    const currentTime = new Date(timestamp);
-    const minutes = currentTime.getMinutes();
-    return minutes % 5 === 0;
-  };
-
-  // 格式化时间显示
-  const formatTime = (timestamp) => {
-    const date = new Date(timestamp);
-    const hours = date.getHours().toString().padStart(2, '0');
-    const minutes = date.getMinutes().toString().padStart(2, '0');
-    return `${hours}:${minutes}`;
   };
 
   return (
     <View style={styles.container}>
-      {/* 左侧程序坞菜单 */}
+      {/* Dock and Sidebar remain the same as original */}
       <View style={styles.dock}>
         <TouchableOpacity style={styles.dockItem}>
-          <View style={styles.dockIcon}>
-            <Text style={styles.dockIconText}>📱</Text>
-          </View>
+          <View style={styles.dockIcon}><Text style={styles.dockIconText}>📱</Text></View>
           <Text style={styles.dockLabel}>工具</Text>
         </TouchableOpacity>
-        
         <TouchableOpacity style={styles.dockItem}>
-          <View style={styles.dockIcon}>
-            <Text style={styles.dockIconText}>⚙️</Text>
-          </View>
+          <View style={styles.dockIcon}><Text style={styles.dockIconText}>⚙️</Text></View>
           <Text style={styles.dockLabel}>设置</Text>
         </TouchableOpacity>
-        
         <TouchableOpacity style={styles.dockItem}>
-          <View style={styles.dockIcon}>
-            <Text style={styles.dockIconText}>👤</Text>
-          </View>
+          <View style={styles.dockIcon}><Text style={styles.dockIconText}>👤</Text></View>
           <Text style={styles.dockLabel}>我的</Text>
         </TouchableOpacity>
-        
         <TouchableOpacity style={styles.dockItem}>
-          <View style={styles.dockIcon}>
-            <Text style={styles.dockIconText}>💬</Text>
-          </View>
+          <View style={styles.dockIcon}><Text style={styles.dockIconText}>💬</Text></View>
           <Text style={styles.dockLabel}>消息</Text>
         </TouchableOpacity>
-        
         <TouchableOpacity style={styles.dockItem}>
-          <View style={styles.dockIcon}>
-            <Text style={styles.dockIconText}>🔍</Text>
-          </View>
+          <View style={styles.dockIcon}><Text style={styles.dockIconText}>🔍</Text></View>
           <Text style={styles.dockLabel}>搜索</Text>
         </TouchableOpacity>
       </View>
-
-      {/* 中间分组列表 */}
+      
       <View style={styles.sidebar}>
         <View style={styles.sidebarHeader}>
           <Text style={styles.sidebarTitle}>分组列表</Text>
@@ -176,21 +166,26 @@ const ChatScreen = ({navigation, route}) => {
           style={styles.groupList}
         />
       </View>
-
-      {/* 右侧聊天区域 */}
+      
       <View style={styles.chatArea}>
-        {/* 聊天头部 */}
         <View style={styles.chatHeader}>
           <Text style={styles.chatTitle}>{currentGroup?.name || '选择分组'}</Text>
           <Text style={styles.chatSubtitle}>{currentGroup?.memberCount || 0}人</Text>
         </View>
         
-        {/* 消息列表 */}
-        <ScrollView style={styles.messageList} showsVerticalScrollIndicator={false}>
-          {messages.map((item, index) => renderMessage({item}))}
+        <ScrollView 
+            ref={scrollViewRef} 
+            style={styles.messageList} 
+            showsVerticalScrollIndicator={false}
+            onContentSizeChange={() => scrollViewRef.current.scrollToEnd({ animated: true })}
+        >
+          {messages.map((item) => (
+            <View key={item.id || item.sendTime || Math.random()}>
+              {renderMessage({ item })}
+            </View>
+          ))}
         </ScrollView>
 
-        {/* 输入框 */}
         <View style={styles.inputContainer}>
           <TextInput
             style={styles.input}
@@ -198,12 +193,12 @@ const ChatScreen = ({navigation, route}) => {
             value={message}
             onChangeText={setMessage}
             multiline
+            onKeyPress={handleKeyPress}
           />
           <TouchableOpacity
-            style={[styles.sendButton, !message.trim() && styles.sendButtonDisabled]}
-            onPress={handleSendMessage}
-            disabled={!message.trim()}>
-            <Text style={[styles.sendButtonText, !message.trim() && styles.sendButtonTextDisabled]}>
+            style={styles.sendButton}
+            onPress={handleSendMessage}>
+            <Text style={styles.sendButtonText}>
               发送
             </Text>
           </TouchableOpacity>
@@ -213,6 +208,7 @@ const ChatScreen = ({navigation, route}) => {
   );
 };
 
+// --- STYLES REVERTED TO ORIGINAL ---
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -231,10 +227,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     alignItems: 'center',
     shadowColor: '#000',
-    shadowOffset: {
-      width: 2,
-      height: 0,
-    },
+    shadowOffset: { width: 2, height: 0 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 4,
@@ -255,9 +248,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 4,
   },
-  dockIconText: {
-    fontSize: 16,
-  },
+  dockIconText: { fontSize: 16 },
   dockLabel: {
     fontSize: 10,
     color: '#666666',
@@ -269,10 +260,7 @@ const styles = StyleSheet.create({
     borderRightWidth: 1,
     borderRightColor: '#e9ecef',
     shadowColor: '#000',
-    shadowOffset: {
-      width: 2,
-      height: 0,
-    },
+    shadowOffset: { width: 2, height: 0 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 4,
@@ -289,9 +277,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#1976d2',
   },
-  groupList: {
-    flex: 1,
-  },
+  groupList: { flex: 1 },
   groupItem: {
     paddingHorizontal: 16,
     paddingVertical: 12,
@@ -330,10 +316,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     margin: 16,
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 8,
     elevation: 8,
@@ -411,14 +394,6 @@ const styles = StyleSheet.create({
   selfText: {
     color: '#ffffff',
   },
-  messageTime: {
-    fontSize: 10,
-    color: '#999999',
-    marginTop: 4,
-  },
-  selfTime: {
-    color: 'rgba(255, 255, 255, 0.7)',
-  },
   inputContainer: {
     flexDirection: 'row',
     paddingHorizontal: 16,
@@ -452,29 +427,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  sendButtonDisabled: {
-    backgroundColor: '#cccccc',
-  },
   sendButtonText: {
     fontSize: 12,
     color: '#ffffff',
     fontWeight: '500',
   },
-  sendButtonTextDisabled: {
-    color: '#999999',
-  },
-  timeContainer: {
-    alignSelf: 'center',
-    marginBottom: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    backgroundColor: '#e0e0e0',
-    borderRadius: 10,
-  },
-  timeText: {
-    fontSize: 10,
-    color: '#666666',
-  },
 });
 
-export default ChatScreen; 
+export default ChatScreen;

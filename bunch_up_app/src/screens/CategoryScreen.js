@@ -82,13 +82,13 @@ const CategoryScreen = ({navigation}) => {
         </View>
 
         <View style={styles.categoryContainer}>
-          <FlatList
-            data={categories}
-            renderItem={renderCategoryItem}
-            keyExtractor={item => item.id.toString()}
-            showsVerticalScrollIndicator={false}
+      <FlatList
+        data={categories}
+        renderItem={renderCategoryItem}
+        keyExtractor={item => item.id.toString()}
+        showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.categoryList}
-          />
+      />
         </View>
       </View>
     </View>

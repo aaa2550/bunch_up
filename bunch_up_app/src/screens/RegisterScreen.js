@@ -93,16 +93,16 @@ const RegisterScreen = ({navigation}) => {
       
       if (result.code === 0) {
         alert('验证码已发送');
-        setCountdown(60);
-        const timer = setInterval(() => {
-          setCountdown(prev => {
-            if (prev <= 1) {
-              clearInterval(timer);
-              return 0;
-            }
-            return prev - 1;
-          });
-        }, 1000);
+      setCountdown(60);
+      const timer = setInterval(() => {
+        setCountdown(prev => {
+          if (prev <= 1) {
+            clearInterval(timer);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
       } else {
         alert(result.message || '发送验证码失败');
       }

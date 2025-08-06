@@ -48,12 +48,12 @@ const LoginScreen = ({navigation}) => {
         // 存储token
         localStorage.setItem('token', result.data.token);
         localStorage.setItem('user', JSON.stringify(result.data.user));
-        
+
         // 延迟跳转，让用户看到成功提示
         setTimeout(() => {
-          navigation.reset({
-            index: 0,
-            routes: [{ name: 'Category' }],
+      navigation.reset({
+        index: 0,
+              routes: [{ name: 'Category' }],
           });
         }, 1500);
       } else {
@@ -97,15 +97,15 @@ const LoginScreen = ({navigation}) => {
             </View>
 
             {/* 密码输入 */}
-            <View style={styles.inputContainer}>
-              <TextInput
-                style={styles.input}
-                placeholder="请输入密码"
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry
-              />
-            </View>
+              <View style={styles.inputContainer}>
+                <TextInput
+                  style={styles.input}
+                  placeholder="请输入密码"
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry
+                />
+              </View>
 
             {/* 登录按钮 */}
             <TouchableOpacity
@@ -122,10 +122,10 @@ const LoginScreen = ({navigation}) => {
               style={styles.registerLink}
               onPress={() => navigation.navigate('Register')}>
               <Text style={styles.registerLinkText}>立即注册</Text>
-            </TouchableOpacity>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
-      </View>
 
       {/* Toast提示 */}
       <Toast

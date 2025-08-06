@@ -15,9 +15,6 @@ public class User {
     @Schema(description = "手机号")
     private String phone;
     
-    @Schema(description = "用户名")
-    private String username;
-    
     @Schema(description = "密码")
     private String password;
     

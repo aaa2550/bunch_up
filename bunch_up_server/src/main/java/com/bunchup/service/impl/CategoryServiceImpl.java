@@ -54,7 +54,7 @@ public class CategoryServiceImpl implements CategoryService {
             categoryRepository.save(category3);
             categoryRepository.save(category4);
             categoryRepository.save(category5);
-        }
+    }
     }
     
     private Category createCategoryDO(String name, String icon, Integer sortOrder) {

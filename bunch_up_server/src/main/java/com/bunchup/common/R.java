@@ -36,6 +36,14 @@ public class R<T> {
         return r;
     }
     
+    public static <T> R<T> error(Integer code, String message) {
+        R<T> r = new R<>();
+        r.setCode(code);
+        r.setMessage(message);
+        r.setTimestamp(System.currentTimeMillis());
+        return r;
+    }
+    
     public static <T> R<T> success(String message, T data) {
         R<T> r = new R<>();
         r.setCode(0);

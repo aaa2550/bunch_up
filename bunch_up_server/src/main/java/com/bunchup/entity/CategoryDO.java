@@ -1,5 +1,7 @@
 package com.bunchup.entity;
 
+import com.mybatisflex.annotation.Id;
+import com.mybatisflex.annotation.Table;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.LocalDateTime;
@@ -9,9 +11,11 @@ import java.time.LocalDateTime;
  * 
  * @author bunchup
  */
+@Table("category")
 @Schema(description = "类别实体")
 public class CategoryDO {
     
+    @Id
     @Schema(description = "类别ID")
     private Long id;
     
