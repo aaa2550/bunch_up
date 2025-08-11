@@ -41,7 +41,7 @@ public class ChatServiceImpl extends ServiceImpl<ChatMessageMapper, ChatMessageD
             com.mybatisflex.core.query.QueryWrapper.create()
                 .where(ChatMessageDO::getGroupId).eq(groupId)
                 .where(ChatMessageDO::getStatus).eq(1)
-                .orderBy(ChatMessageDO::getSendTime).desc()
+                .orderBy(ChatMessageDO::getSendTime).asc() // 改为升序，显示时间顺序
                 .limit(limit)
         );
         return ChatMessageConverter.INSTANCE.convertToDTO(messageDOList);

@@ -1,6 +1,7 @@
 package com.bunchup.controller;
 
 import com.alibaba.fastjson2.JSON;
+import com.bunchup.common.R;
 import com.bunchup.dto.ChatMessage;
 import com.bunchup.dto.WebSocketMessage;
 import com.bunchup.service.ChatService;
@@ -10,9 +11,15 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-@Controller
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/v1/chat")
 public class ChatController {
 
     @Autowired
@@ -20,6 +27,13 @@ public class ChatController {
 
     @Autowired
     private ChatService chatService;
+
+    @GetMapping("/group/{groupId}/messages")
+    public R<List<ChatMessage>> getGroupMessages(@PathVariable Long groupId) {
+        // 获取最近200条消息
+        List<ChatMessage> messages = chatService.getMessagesByGroup(groupId, 200);
+        return R.ok(messages);
+    }
 
     @MessageMapping("/chat.send")
     @SendTo("/topic/chat")

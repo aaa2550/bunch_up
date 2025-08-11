@@ -21,4 +21,9 @@ public class ChatGroupController {
     public R<List<ChatGroup>> getGroupsByCategoryId(@PathVariable Long categoryId) {
         return R.ok(chatGroupService.getGroupsByCategoryId(categoryId));
     }
+    
+    @GetMapping("/{groupId}/online-count")
+    public R<Integer> getGroupOnlineCount(@PathVariable Long groupId) {
+        return R.ok(chatGroupService.getGroupOnlineCount(groupId));
+    }
 }

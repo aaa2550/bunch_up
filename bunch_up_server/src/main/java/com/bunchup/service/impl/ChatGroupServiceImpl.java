@@ -17,4 +17,11 @@ public class ChatGroupServiceImpl implements ChatGroupService {
     public List<ChatGroup> getGroupsByCategoryId(Long categoryId) {
         return chatGroupRepository.findByCategoryId(categoryId);
     }
+    
+    @Override
+    public Integer getGroupOnlineCount(Long groupId) {
+        // 这里可以从WebSocket连接池或者Redis中获取在线人数
+        // 暂时返回模拟数据，后续可以集成Redis或WebSocket连接管理
+        return chatGroupRepository.getGroupOnlineCount(groupId);
+    }
 }

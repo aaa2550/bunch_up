@@ -21,4 +21,12 @@ public class ChatGroupRepositoryImpl extends ServiceImpl<ChatGroupMapper, ChatGr
                 .list();
         return ChatGroupConverter.INSTANCE.convertToDTO(chatGroupDOS);
     }
+    
+    @Override
+    public Integer getGroupOnlineCount(Long groupId) {
+        // 这里可以从WebSocket连接池或者Redis中获取在线人数
+        // 暂时返回模拟数据，后续可以集成Redis或WebSocket连接管理
+        // 模拟返回5-20之间的随机在线人数
+        return (int) (Math.random() * 16) + 5;
+    }
 }

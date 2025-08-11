@@ -8,4 +8,6 @@ import java.util.List;
 
 public interface ChatGroupRepository extends IService<ChatGroupDO> {
     List<ChatGroup> findByCategoryId(Long categoryId);
+    
+    Integer getGroupOnlineCount(Long groupId);
 }

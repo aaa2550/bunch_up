@@ -9,7 +9,8 @@ import {
   ScrollView,
 } from 'react-native';
 import useWebSocket from '../hooks/useWebSocket';
-import { fetchGroupsByCategory, fetchMessagesByGroup } from '../api/chatAPI';
+import { fetchGroupsByCategory, fetchMessagesByGroup, fetchGroupOnlineCount } from '../api/chatAPI';
+import { formatChatTime, shouldShowTime, formatFullDateTime, isSameDay } from '../utils/timeUtils';
 
 const ChatScreen = ({ navigation, route }) => {
   const { category } = route.params || {};
@@ -17,6 +18,7 @@ const ChatScreen = ({ navigation, route }) => {
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState([]);
   const [groups, setGroups] = useState([]);
+  const [onlineCount, setOnlineCount] = useState(0);
   const scrollViewRef = useRef();
   const subscription = useRef(null);
 
@@ -75,10 +77,15 @@ const ChatScreen = ({ navigation, route }) => {
     setCurrentGroup(group);
     // 拉取历史消息
     try {
-      const history = await fetchMessagesByGroup(group.id);
+      const history = await fetchMessagesByGroup(group.id, 200);
       setMessages(history || []);
+      
+      // 获取在线人数
+      const count = await fetchGroupOnlineCount(group.id);
+      setOnlineCount(count || 0);
     } catch (e) {
       setMessages([]);
+      setOnlineCount(0);
     }
   };
 
@@ -115,37 +122,61 @@ const ChatScreen = ({ navigation, route }) => {
     </TouchableOpacity>
   );
 
-  const renderMessage = ({ item }) => {
+  const renderMessage = ({ item, index }) => {
     const isSelf = String(item.userId) === String(currentUser.id);
+    const previousMessage = index > 0 ? messages[index - 1] : null;
+    const shouldShowTimeFlag = shouldShowTime(item, previousMessage);
+    const shouldShowDate = previousMessage && !isSameDay(new Date(item.sendTime), new Date(previousMessage.sendTime));
+    
     return (
-      <View style={[
-        styles.messageContainer,
-        isSelf ? styles.selfMessageContainer : styles.otherMessageContainer
-      ]}>
-        {!isSelf && (
-          <View style={styles.avatarContainer}>
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>{item.userName?.charAt(0) || 'U'}</Text>
-            </View>
+      <View>
+        {/* 跨天日期显示 */}
+        {shouldShowDate && (
+          <View style={styles.dateDivider}>
+            <Text style={styles.dateText}>
+              {formatFullDateTime(item.sendTime)}
+            </Text>
           </View>
         )}
-        <View style={[styles.messageBubble, isSelf ? styles.selfBubble : styles.otherBubble]}>
+        
+        {/* 时间显示（5分钟跨度） */}
+        {shouldShowTimeFlag && !shouldShowDate && (
+          <View style={styles.timeDivider}>
+            <Text style={styles.timeText}>
+              {formatChatTime(item.sendTime)}
+            </Text>
+          </View>
+        )}
+        
+        <View style={[
+          styles.messageContainer,
+          isSelf ? styles.selfMessageContainer : styles.otherMessageContainer
+        ]}>
           {!isSelf && (
-            <Text style={styles.userName}>{item.userName}</Text>
-          )}
-          <Text style={[styles.messageText, isSelf && styles.selfText]}>
-            {item.content}
-          </Text>
-          {/* 聊天气泡小尖角 */}
-          <View style={[styles.bubbleArrow, isSelf ? styles.selfBubbleArrow : styles.otherBubbleArrow]} />
-        </View>
-        {isSelf && (
-          <View style={styles.avatarContainer}>
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>{item.userName?.charAt(0) || 'U'}</Text>
+            <View style={styles.avatarContainer}>
+              <View style={styles.avatar}>
+                <Text style={styles.avatarText}>{item.userName?.charAt(0) || 'U'}</Text>
+              </View>
             </View>
+          )}
+          <View style={[styles.messageBubble, isSelf ? styles.selfBubble : styles.otherBubble]}>
+            {!isSelf && (
+              <Text style={styles.userName}>{item.userName}</Text>
+            )}
+            <Text style={[styles.messageText, isSelf && styles.selfText]}>
+              {item.content}
+            </Text>
+            {/* 聊天气泡小尖角 */}
+            <View style={[styles.bubbleArrow, isSelf ? styles.selfBubbleArrow : styles.otherBubbleArrow]} />
           </View>
-        )}
+          {isSelf && (
+            <View style={styles.avatarContainer}>
+              <View style={styles.avatar}>
+                <Text style={styles.avatarText}>{item.userName?.charAt(0) || 'U'}</Text>
+              </View>
+            </View>
+          )}
+        </View>
       </View>
     );
   };
@@ -192,7 +223,7 @@ const ChatScreen = ({ navigation, route }) => {
       <View style={styles.chatArea}>
         <View style={styles.chatHeader}>
           <Text style={styles.chatTitle}>{currentGroup?.name || '选择分组'}</Text>
-          <Text style={styles.chatSubtitle}>{currentGroup?.memberCount || 0}人</Text>
+          <Text style={styles.chatSubtitle}>{onlineCount}人</Text>
         </View>
         
         <ScrollView 
@@ -201,9 +232,9 @@ const ChatScreen = ({ navigation, route }) => {
             showsVerticalScrollIndicator={false}
             onContentSizeChange={() => scrollViewRef.current.scrollToEnd({ animated: true })}
         >
-          {messages.map((item) => (
+          {messages.map((item, index) => (
             <View key={item.id || item.sendTime || Math.random()}>
-              {renderMessage({ item })}
+              {renderMessage({ item, index })}
             </View>
           ))}
         </ScrollView>
@@ -489,6 +520,29 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#ffffff',
     fontWeight: '500',
+  },
+  dateDivider: {
+    alignSelf: 'center',
+    marginVertical: 10,
+    paddingHorizontal: 10,
+    backgroundColor: '#e0e0e0',
+    borderRadius: 8,
+  },
+  dateText: {
+    fontSize: 12,
+    color: '#666666',
+    fontWeight: '500',
+  },
+  timeDivider: {
+    alignSelf: 'center',
+    marginVertical: 5,
+    paddingHorizontal: 10,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 8,
+  },
+  timeText: {
+    fontSize: 11,
+    color: '#999999',
   },
 });
 
