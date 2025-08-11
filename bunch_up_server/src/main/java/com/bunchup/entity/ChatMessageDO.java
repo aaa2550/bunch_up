@@ -17,6 +17,9 @@ public class ChatMessageDO {
     @Schema(description = "发送者ID")
     private Long userId;
     
+    @Schema(description = "发送者昵称")
+    private String userName;
+    
     @Schema(description = "群组ID")
     private Long groupId;
     
@@ -47,6 +50,14 @@ public class ChatMessageDO {
     
     public void setUserId(Long userId) {
         this.userId = userId;
+    }
+    
+    public String getUserName() {
+        return userName;
+    }
+    
+    public void setUserName(String userName) {
+        this.userName = userName;
     }
     
     public Long getGroupId() {

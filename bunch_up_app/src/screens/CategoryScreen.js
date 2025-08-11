@@ -49,6 +49,18 @@ const CategoryScreen = ({navigation}) => {
   };
 
   const handleCategorySelect = (category) => {
+    // 检查用户登录状态
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    console.log('CategoryScreen - 用户选择分类:', category);
+    console.log('CategoryScreen - 当前用户状态:', user);
+    
+    if (!user.id || !user.token) {
+      console.warn('CategoryScreen - 用户未登录，跳转到登录页面');
+      navigation.replace('Login');
+      return;
+    }
+    
+    console.log('CategoryScreen - 用户已登录，跳转到聊天页面');
     navigation.navigate('Chat', { category });
   };
 

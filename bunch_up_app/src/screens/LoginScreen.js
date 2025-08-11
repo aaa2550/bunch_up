@@ -45,15 +45,23 @@ const LoginScreen = ({navigation}) => {
         setToastType('success');
         setShowToast(true);
         
-        // 存储token
-        localStorage.setItem('token', result.data.token);
-        localStorage.setItem('user', JSON.stringify(result.data.user));
+        // 将token添加到用户信息中，然后统一存储
+        const userData = {
+          ...result.data.user,
+          token: result.data.token
+        };
+        console.log('LoginScreen - 登录成功，用户数据:', userData);
+        localStorage.setItem('user', JSON.stringify(userData));
+        
+        // 验证存储是否成功
+        const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+        console.log('LoginScreen - 验证存储结果:', storedUser);
 
         // 延迟跳转，让用户看到成功提示
         setTimeout(() => {
-      navigation.reset({
-        index: 0,
-              routes: [{ name: 'Category' }],
+          navigation.reset({
+            index: 0,
+            routes: [{ name: 'Category' }],
           });
         }, 1500);
       } else {

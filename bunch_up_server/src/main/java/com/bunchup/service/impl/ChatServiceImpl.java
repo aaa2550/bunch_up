@@ -39,16 +39,33 @@ public class ChatServiceImpl extends ServiceImpl<ChatMessageMapper, ChatMessageD
     public List<ChatMessage> getMessagesByGroup(Long groupId, int limit) {
         List<ChatMessageDO> messageDOList = chatMessageMapper.selectListByQuery(
             com.mybatisflex.core.query.QueryWrapper.create()
+                .select(ChatMessageDO::getId, ChatMessageDO::getUserId, ChatMessageDO::getUserName, 
+                       ChatMessageDO::getGroupId, ChatMessageDO::getContent, ChatMessageDO::getMessageType, 
+                       ChatMessageDO::getSendTime, ChatMessageDO::getStatus)
                 .where(ChatMessageDO::getGroupId).eq(groupId)
                 .where(ChatMessageDO::getStatus).eq(1)
                 .orderBy(ChatMessageDO::getSendTime).asc() // 改为升序，显示时间顺序
                 .limit(limit)
         );
+        
+        // 添加调试日志
+        System.out.println("查询到的消息数量: " + messageDOList.size());
+        if (!messageDOList.isEmpty()) {
+            System.out.println("第一条消息示例: " + messageDOList.get(0));
+        }
+        
         return ChatMessageConverter.INSTANCE.convertToDTO(messageDOList);
     }
     
     @Override
     public ChatMessage saveMessage(ChatMessage message) {
+        // 确保消息包含完整的用户信息
+        if (message.getUserName() == null || message.getUserName().isEmpty()) {
+            // 如果没有用户名，尝试从用户ID获取
+            // 这里可以注入UserService来获取用户信息，暂时使用默认值
+            message.setUserName("用户" + message.getUserId());
+        }
+        
         ChatMessageDO messageDO = ChatMessageConverter.INSTANCE.convertToDO(message);
         messageDO.setSendTime(LocalDateTime.now());
         messageDO.setStatus(1);
@@ -101,6 +118,12 @@ public class ChatServiceImpl extends ServiceImpl<ChatMessageMapper, ChatMessageD
             "大家有什么想法？"
         };
         
+        String[] userNames = {
+            "主播小王",
+            "投资达人",
+            "财经专家"
+        };
+        
         for (int i = 0; i < messages.length; i++) {
             ChatMessageDO message = new ChatMessageDO();
             message.setUserId((long) (i % 3 + 1)); // 模拟3个用户
@@ -109,6 +132,7 @@ public class ChatServiceImpl extends ServiceImpl<ChatMessageMapper, ChatMessageD
             message.setMessageType(1);
             message.setSendTime(LocalDateTime.now().minusHours(i));
             message.setStatus(1);
+            message.setUserName(userNames[i % 3]); // 设置用户昵称
             chatMessageMapper.insert(message);
         }
     }

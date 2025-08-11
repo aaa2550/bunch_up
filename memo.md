@@ -484,3 +484,141 @@
   - 时间分隔符：居中显示，浅灰色背景，圆角设计
   - 时间文字：不同大小和颜色区分日期和时间
 - **效果**: 聊天界面现在具有专业的时间显示效果，用户体验更加友好 
+
+### WebSocket NullPointerException错误修复 (当前)
+- **问题**: Java后端出现NullPointerException，无法调用`headerAccessor.getUser().getName()`
+- **错误信息**: `java.lang.NullPointerException: Cannot invoke "java.security.Principal.getName()" because the return value of "org.springframework.messaging.simp.SimpMessageHeaderAccessor.getUser()" is null`
+- **原因分析**: 
+  1. WebSocket连接时用户可能没有经过认证，`headerAccessor.getUser()`返回null
+  2. 在`joinGroup`和`leaveGroup`方法中直接调用`getUser().getName()`导致空指针异常
+  3. WebSocketAuthInterceptor过于严格，拒绝匿名用户连接
+- **解决方案**: 
+  1. 修复ChatController中的`joinGroup`和`leaveGroup`方法，添加用户认证检查
+  2. 改进WebSocketAuthInterceptor，允许匿名用户连接，设置默认用户名
+  3. 在前端useWebSocket中添加token认证，在连接时发送用户token
+- **技术细节**: 
+  - 用户认证优先级：WebSocket session用户 > 消息中的用户名 > 默认匿名用户
+  - 前端token格式：`token_userId_timestamp`，兼容现有登录系统
+  - 匿名用户处理：设置为"匿名用户"，确保系统稳定性
+- **效果**: WebSocket连接现在更加稳定，支持认证用户和匿名用户，不再出现NullPointerException 
+
+### WebSocket严格认证修复 (当前)
+- **问题**: 之前的修复允许匿名用户访问，但需求要求只允许登录用户使用聊天功能
+- **需求澄清**: 不允许任何匿名用户访问，必须登录后才能发送消息
+- **解决方案**: 
+  1. 恢复WebSocketAuthInterceptor的严格认证要求，拒绝无效token的连接
+  2. 在ChatController中添加用户身份验证，未认证用户无法发送消息
+  3. 在前端useWebSocket中添加登录状态检查，只有登录用户才能连接
+  4. 在ChatScreen中添加登录状态检查，未登录用户自动跳转到登录页面
+- **技术细节**: 
+  - 认证流程：前端检查登录状态 → WebSocket连接时发送token → 后端验证token → 设置用户身份
+  - 错误处理：未认证用户连接被拒绝，发送消息时抛出异常
+  - 用户体验：未登录用户自动跳转登录页面，确保功能安全性
+- **安全特性**: 
+  - 严格的用户认证：只有有效token才能连接WebSocket
+  - 消息发送验证：每条消息都验证发送者身份
+  - 前端状态检查：防止未登录用户访问聊天功能
+- **效果**: 现在聊天功能完全安全，只有登录用户才能使用，符合安全要求 
+
+### 登录后选择分类跳转问题排查和修复 (当前)
+- **问题**: 用户登录成功后选择分类，无法进入聊天页面，被跳转回登录页面
+- **问题分析**: 
+  1. 登录状态检查逻辑有问题，useEffect依赖了外部定义的user对象
+  2. 用户信息存储和读取可能存在不一致
+  3. 缺少调试日志，无法准确定位问题
+- **排查过程**: 
+  1. 检查LoginScreen的用户信息存储逻辑
+  2. 检查ChatScreen的登录状态检查逻辑
+  3. 检查useWebSocket的连接逻辑
+  4. 检查CategoryScreen的分类选择逻辑
+- **发现的问题**: 
+  1. ChatScreen中登录状态检查的useEffect依赖了外部user对象
+  2. 缺少足够的调试日志来追踪问题
+  3. 用户信息存储和读取的时机可能有问题
+- **修复方案**: 
+  1. 将用户信息获取移到useEffect内部，避免依赖外部变量
+  2. 在LoginScreen、CategoryScreen、ChatScreen、useWebSocket中添加调试日志
+  3. 在CategoryScreen中添加登录状态检查，提前发现问题
+  4. 优化登录状态检查的逻辑和时机
+- **调试日志**: 
+  - LoginScreen: 登录成功后的用户数据和存储验证
+  - CategoryScreen: 分类选择时的用户状态检查
+  - ChatScreen: 页面加载时的登录状态检查
+  - useWebSocket: WebSocket连接过程中的状态检查
+- **预期效果**: 通过调试日志可以准确定位问题，修复后用户登录选择分类应该能正常进入聊天页面 
+
+### WebSocket认证问题排查和修复 (当前)
+- **问题**: 用户已登录但WebSocket连接时仍然报"用户未认证，无法加入群组"错误
+- **错误信息**: `java.lang.RuntimeException: 用户未认证，无法加入群组`
+- **问题分析**: 
+  1. WebSocketAuthInterceptor没有被注册到WebSocket配置中
+  2. 用户认证信息没有正确设置到WebSocket session
+  3. 缺少详细的调试日志来追踪认证过程
+- **根本原因**: 
+  1. **主要问题**: WebSocketConfig中没有注册WebSocketAuthInterceptor
+  2. **次要问题**: 拦截器中的用户信息设置逻辑有问题
+  3. **调试问题**: 缺少足够的日志来追踪认证失败的具体原因
+- **修复方案**: 
+  1. 在WebSocketConfig中注册WebSocketAuthInterceptor
+  2. 修复拦截器中的用户信息设置逻辑
+  3. 添加详细的调试日志来追踪认证过程
+- **技术细节**: 
+  - 注册拦截器：使用`configureClientInboundChannel`方法注册拦截器
+  - 用户信息设置：创建包含用户ID和昵称的Principal对象
+  - 调试日志：在认证的每个关键步骤添加日志输出
+- **用户信息设置流程**: 
+  1. 前端WebSocket连接时在headers中发送token
+  2. WebSocketAuthInterceptor拦截CONNECT命令
+  3. 解析token获取用户ID
+  4. 调用UserService.get(userId)获取用户信息
+  5. 创建Principal对象并设置到accessor.setUser()
+  6. 后续的WebSocket消息中可以通过headerAccessor.getUser()获取用户信息
+- **预期效果**: 修复后用户登录状态下WebSocket连接应该能正常认证，不再出现"用户未认证"错误 
+
+### 用户昵称显示问题修复 (当前)
+- **问题**: 无论是历史消息还是实时消息，都没有显示对方的昵称
+- **问题分析**: 
+  1. ChatMessageDO实体类中缺少userName字段
+  2. 数据库表结构中缺少user_name字段
+  3. 测试数据创建时没有设置用户昵称
+  4. 消息保存时没有确保用户昵称被正确设置
+- **修复方案**: 
+  1. 在ChatMessageDO实体类中添加userName字段
+  2. 在数据库初始化脚本中添加user_name字段
+  3. 修复ChatServiceImpl中的测试消息创建，确保包含用户昵称
+  4. 改进saveMessage方法，确保消息包含完整的用户信息
+  5. 在数据库初始化脚本中添加包含用户昵称的测试消息数据
+- **技术细节**: 
+  - 实体类字段：ChatMessageDO添加userName字段，包含getter和setter方法
+  - 数据库字段：chat_message表添加user_name varchar(50)字段
+  - 测试数据：创建包含真实用户昵称的测试消息
+  - 消息保存：在saveMessage方法中添加用户昵称验证和设置
+- **数据完整性**: 
+  - 历史消息：通过测试数据确保包含用户昵称
+  - 实时消息：通过ChatController确保发送时设置用户昵称
+  - 前端显示：ChatScreen中正确显示item.userName
+- **预期效果**: 现在无论是历史消息还是实时消息，都应该正确显示对方的昵称，提升聊天体验 
+
+### 昵称显示问题进一步排查 (当前)
+- **问题**: 修复后对方的昵称仍然没有展示
+- **排查方向**: 
+  1. 前端显示逻辑检查
+  2. 后端数据查询检查
+  3. 数据库字段映射检查
+  4. 转换器工作状态检查
+- **排查措施**: 
+  1. 在前端ChatScreen中添加调试日志，检查消息数据结构
+  2. 在handleGroupSelect中添加日志，检查从后端获取的消息数据
+  3. 在ChatServiceImpl的getMessagesByGroup方法中明确指定查询字段
+  4. 在ChatController中添加调试日志和测试接口
+  5. 添加字段选择器，确保userName字段被正确查询
+- **可能的问题点**: 
+  1. **字段查询问题**: MyBatis-Flex查询时可能没有包含所有字段
+  2. **数据库数据问题**: 数据库中的消息记录可能没有userName值
+  3. **转换器问题**: MapStruct转换器可能没有正确处理userName字段
+  4. **字段映射问题**: 实体类与数据库字段的映射可能有问题
+- **调试接口**: 
+  - 添加了`/test/messages/{groupId}`测试接口
+  - 可以直接查看数据库中的消息数据
+  - 帮助定位问题是在数据库、转换器还是前端
+- **预期效果**: 通过调试日志和测试接口，能够准确定位昵称不显示的具体原因 

@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import WebIcon from '../components/WebIcon';
+import { formatSessionTime } from '../utils/timeUtils';
 
 const ChatListScreen = ({navigation}) => {
   const currentCategory = useSelector(state => state.category.currentCategory);
@@ -26,7 +27,7 @@ const ChatListScreen = ({navigation}) => {
       id: 1,
       name: '新手主播群',
       lastMessage: '大家好，我是新手主播',
-      time: '10:30',
+      time: new Date().getTime() - 2 * 60 * 60 * 1000, // 2小时前
       unreadCount: 2,
       avatar: 'https://via.placeholder.com/50',
     },
@@ -34,7 +35,7 @@ const ChatListScreen = ({navigation}) => {
       id: 2,
       name: '经验主播群',
       lastMessage: '分享一些直播技巧',
-      time: '09:15',
+      time: new Date().getTime() - 24 * 60 * 60 * 1000, // 1天前
       unreadCount: 0,
       avatar: 'https://via.placeholder.com/50',
     },
@@ -42,7 +43,7 @@ const ChatListScreen = ({navigation}) => {
       id: 3,
       name: 'MCN机构群',
       lastMessage: '欢迎加入我们的机构',
-      time: '昨天',
+      time: new Date().getTime() - 3 * 24 * 60 * 60 * 1000, // 3天前
       unreadCount: 5,
       avatar: 'https://via.placeholder.com/50',
     },
@@ -56,7 +57,7 @@ const ChatListScreen = ({navigation}) => {
       <View style={styles.chatInfo}>
         <View style={styles.chatHeader}>
           <Text style={styles.chatName}>{item.name}</Text>
-          <Text style={styles.chatTime}>{item.time}</Text>
+          <Text style={styles.chatTime}>{formatSessionTime(item.time)}</Text>
         </View>
         <View style={styles.chatFooter}>
           <Text style={styles.lastMessage} numberOfLines={1}>

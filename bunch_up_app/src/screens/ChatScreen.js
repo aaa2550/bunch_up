@@ -26,6 +26,21 @@ const ChatScreen = ({ navigation, route }) => {
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const currentUser = { id: user.id, name: user.nickname || user.name || '' };
 
+  // 检查用户是否已登录
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    console.log('ChatScreen - 检查用户登录状态:', user);
+    
+    if (!user.id || !user.token) {
+      console.log('ChatScreen - 用户未登录，跳转到登录页面');
+      // 用户未登录，跳转到登录页面
+      navigation.replace('Login');
+      return;
+    }
+    
+    console.log('ChatScreen - 用户已登录:', user.nickname || user.name);
+  }, [navigation]);
+
   const { isConnected, subscribe, sendMessage } = useWebSocket('http://localhost:8080/ws');
 
   useEffect(() => {
@@ -78,12 +93,15 @@ const ChatScreen = ({ navigation, route }) => {
     // 拉取历史消息
     try {
       const history = await fetchMessagesByGroup(group.id, 200);
+      console.log('从后端获取的历史消息:', history);
+      console.log('第一条消息示例:', history?.[0]);
       setMessages(history || []);
       
       // 获取在线人数
       const count = await fetchGroupOnlineCount(group.id);
       setOnlineCount(count || 0);
     } catch (e) {
+      console.error('获取消息失败:', e);
       setMessages([]);
       setOnlineCount(0);
     }
@@ -128,6 +146,16 @@ const ChatScreen = ({ navigation, route }) => {
     const shouldShowTimeFlag = shouldShowTime(item, previousMessage);
     const shouldShowDate = previousMessage && !isSameDay(new Date(item.sendTime), new Date(previousMessage.sendTime));
     
+    // 添加调试日志
+    console.log(`Message ${index}:`, {
+      id: item.id,
+      userId: item.userId,
+      userName: item.userName,
+      content: item.content,
+      isSelf: isSelf,
+      currentUser: currentUser
+    });
+    
     return (
       <View>
         {/* 跨天日期显示 */}
@@ -161,7 +189,7 @@ const ChatScreen = ({ navigation, route }) => {
           )}
           <View style={[styles.messageBubble, isSelf ? styles.selfBubble : styles.otherBubble]}>
             {!isSelf && (
-              <Text style={styles.userName}>{item.userName}</Text>
+              <Text style={styles.userName}>{item.userName || `用户${item.userId}`}</Text>
             )}
             <Text style={[styles.messageText, isSelf && styles.selfText]}>
               {item.content}

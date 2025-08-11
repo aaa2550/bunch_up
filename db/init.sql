@@ -67,6 +67,7 @@ CREATE TABLE IF NOT EXISTS `user_group` (
 CREATE TABLE IF NOT EXISTS `chat_message` (
   `id` bigint NOT NULL AUTO_INCREMENT COMMENT '消息ID',
   `user_id` bigint NOT NULL COMMENT '发送者ID',
+  `user_name` varchar(50) DEFAULT NULL COMMENT '发送者昵称',
   `group_id` bigint NOT NULL COMMENT '群组ID',
   `content` text NOT NULL COMMENT '消息内容',
   `message_type` tinyint NOT NULL DEFAULT '1' COMMENT '消息类型：1-文本，2-图片，3-文件',
@@ -173,6 +174,30 @@ INSERT INTO `user_group` (`user_id`, `group_id`) VALUES
 (4, 1), (4, 3), (4, 5), (4, 7), (4, 9),
 (5, 1), (5, 3), (5, 5), (5, 7), (5, 9)
 ON DUPLICATE KEY UPDATE user_id=VALUES(user_id), group_id=VALUES(group_id);
+
+-- 插入测试聊天消息数据
+INSERT INTO `chat_message` (`user_id`, `user_name`, `group_id`, `content`, `message_type`, `send_time`, `status`) VALUES
+-- 短视频主播交流群消息
+(1, '张三', 1, '大家好，欢迎来到短视频主播交流群！', 1, DATE_SUB(NOW(), INTERVAL 2 HOUR), 1),
+(2, '李四', 1, '今天天气不错，适合拍摄外景', 1, DATE_SUB(NOW(), INTERVAL 1 HOUR), 1),
+(3, '王五', 1, '有什么新消息吗？', 1, DATE_SUB(NOW(), INTERVAL 30 MINUTE), 1),
+(1, '张三', 1, '分享一个有趣的内容', 1, DATE_SUB(NOW(), INTERVAL 15 MINUTE), 1),
+(2, '李四', 1, '大家有什么想法？', 1, DATE_SUB(NOW(), INTERVAL 5 MINUTE), 1),
+
+-- 股票投资交流群消息
+(2, '李四', 3, '大家好，欢迎来到股票投资交流群！', 1, DATE_SUB(NOW(), INTERVAL 3 HOUR), 1),
+(3, '王五', 3, '今天股市怎么样？', 1, DATE_SUB(NOW(), INTERVAL 2 HOUR), 1),
+(4, '赵六', 3, '有什么投资建议吗？', 1, DATE_SUB(NOW(), INTERVAL 1 HOUR), 1),
+(2, '李四', 3, '分享一些投资经验', 1, DATE_SUB(NOW(), INTERVAL 30 MINUTE), 1),
+(3, '王五', 3, '市场分析很重要', 1, DATE_SUB(NOW(), INTERVAL 10 MINUTE), 1),
+
+-- 程序员技术交流群消息
+(4, '赵六', 7, '大家好，欢迎来到程序员技术交流群！', 1, DATE_SUB(NOW(), INTERVAL 4 HOUR), 1),
+(5, '钱七', 7, '今天遇到一个技术问题', 1, DATE_SUB(NOW(), INTERVAL 3 HOUR), 1),
+(1, '张三', 7, '有什么技术分享吗？', 1, DATE_SUB(NOW(), INTERVAL 2 HOUR), 1),
+(4, '赵六', 7, '分享一些编程经验', 1, DATE_SUB(NOW(), INTERVAL 1 HOUR), 1),
+(5, '钱七', 7, '代码质量很重要', 1, DATE_SUB(NOW(), INTERVAL 30 MINUTE), 1)
+ON DUPLICATE KEY UPDATE user_name=VALUES(user_name), content=VALUES(content), send_time=VALUES(send_time), status=VALUES(status);
 
 -- 其他插入语句...
 

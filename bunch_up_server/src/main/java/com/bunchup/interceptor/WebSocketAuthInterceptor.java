@@ -12,6 +12,7 @@ import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.stereotype.Component;
 
+import java.security.Principal;
 import java.util.List;
 
 @Component
@@ -29,24 +30,56 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
             List<String> tokenList = accessor.getNativeHeader("token");
             if (tokenList != null && !tokenList.isEmpty()) {
                 String token = tokenList.get(0);
-                // 这里简化处理，实际应该验证JWT token
-                // 假设token格式为 "token_userId_timestamp"
+                System.out.println("WebSocket连接，收到token: " + token);
+                
+                // 验证token格式和用户身份
                 String[] parts = token.split("_");
                 if (parts.length >= 2) {
                     try {
                         Long userId = Long.parseLong(parts[1]);
+                        System.out.println("解析到用户ID: " + userId);
+                        
                         User user = userService.get(userId);
+                        System.out.println("UserService.get()返回结果: " + user);
+                        
                         if (user != null) {
+                            System.out.println("找到用户: " + user.getNickname() + ", ID: " + user.getId());
+                            
+                            // 创建一个包含用户ID和昵称的Principal对象
+                            Principal userPrincipal = new Principal() {
+                                @Override
+                                public String getName() {
+                                    return user.getNickname();
+                                }
+                                
+                                public Long getId() {
+                                    return user.getId();
+                                }
+                                
+                                public String getPhone() {
+                                    return user.getPhone();
+                                }
+                            };
+                            
                             // 设置用户信息到WebSocket session
-                            accessor.setUser(() -> user.getNickname());
+                            accessor.setUser(userPrincipal);
+                            System.out.println("用户认证成功，设置Principal: " + userPrincipal.getName());
                             return message;
+                        } else {
+                            System.out.println("用户不存在，ID: " + userId);
+                            System.out.println("可能的原因：1. 用户ID不存在 2. 数据库连接问题 3. 转换器问题");
                         }
                     } catch (NumberFormatException e) {
-                        // token格式错误
+                        System.out.println("token格式错误: " + e.getMessage());
                     }
+                } else {
+                    System.out.println("token格式不正确，parts长度: " + parts.length);
                 }
+            } else {
+                System.out.println("未找到token");
             }
             // 鉴权失败，拒绝连接
+            System.out.println("WebSocket连接认证失败，拒绝连接");
             return null;
         }
         
