@@ -129,13 +129,15 @@ const ChatScreen = ({ navigation, route }) => {
             </View>
           </View>
         )}
-        <View style={[styles.messageBubble, isSelf ? styles.selfBubble : {}]}>
+        <View style={[styles.messageBubble, isSelf ? styles.selfBubble : styles.otherBubble]}>
           {!isSelf && (
             <Text style={styles.userName}>{item.userName}</Text>
           )}
           <Text style={[styles.messageText, isSelf && styles.selfText]}>
             {item.content}
           </Text>
+          {/* 聊天气泡小尖角 */}
+          <View style={[styles.bubbleArrow, isSelf ? styles.selfBubbleArrow : styles.otherBubbleArrow]} />
         </View>
         {isSelf && (
           <View style={styles.avatarContainer}>
@@ -379,7 +381,8 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
   },
   avatarContainer: {
-    marginRight: 8,
+    marginHorizontal: 8,
+    alignSelf: 'flex-end',
   },
   avatar: {
     width: 32,
@@ -400,9 +403,13 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 8,
+    position: 'relative',
   },
   selfBubble: {
     backgroundColor: '#007AFF',
+  },
+  otherBubble: {
+    backgroundColor: '#f0f0f0',
   },
   userName: {
     fontSize: 11,
@@ -416,6 +423,34 @@ const styles = StyleSheet.create({
   },
   selfText: {
     color: '#ffffff',
+  },
+  bubbleArrow: {
+    position: 'absolute',
+    width: 0,
+    height: 0,
+    top: 12,
+    borderLeftWidth: 8,
+    borderRightWidth: 8,
+    borderTopWidth: 8,
+    borderBottomWidth: 0,
+    borderLeftColor: 'transparent',
+    borderRightColor: 'transparent',
+    borderTopColor: 'transparent',
+    borderBottomColor: 'transparent',
+  },
+  selfBubbleArrow: {
+    right: -8,
+    borderLeftColor: '#007AFF',
+    borderRightColor: 'transparent',
+    borderTopColor: 'transparent',
+    borderBottomColor: 'transparent',
+  },
+  otherBubbleArrow: {
+    left: -8,
+    borderLeftColor: 'transparent',
+    borderRightColor: '#f0f0f0',
+    borderTopColor: 'transparent',
+    borderBottomColor: 'transparent',
   },
   inputContainer: {
     flexDirection: 'row',
