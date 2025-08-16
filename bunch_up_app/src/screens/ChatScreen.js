@@ -211,28 +211,34 @@ const ChatScreen = ({ navigation, route }) => {
 
   return (
     <View style={styles.container}>
-      {/* Dock and Sidebar remain the same as original */}
+      {/* 程序坞 */}
       <View style={styles.dock}>
-        <TouchableOpacity style={styles.dockItem}>
-          <View style={styles.dockIcon}><Text style={styles.dockIconText}>📱</Text></View>
-          <Text style={styles.dockLabel}>工具</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.dockItem}>
-          <View style={styles.dockIcon}><Text style={styles.dockIconText}>⚙️</Text></View>
-          <Text style={styles.dockLabel}>设置</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.dockItem}>
-          <View style={styles.dockIcon}><Text style={styles.dockIconText}>👤</Text></View>
-          <Text style={styles.dockLabel}>我的</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.dockItem}>
-          <View style={styles.dockIcon}><Text style={styles.dockIconText}>💬</Text></View>
-          <Text style={styles.dockLabel}>消息</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.dockItem}>
-          <View style={styles.dockIcon}><Text style={styles.dockIconText}>🔍</Text></View>
-          <Text style={styles.dockLabel}>搜索</Text>
-        </TouchableOpacity>
+        <View style={styles.dockContainer}>
+          <TouchableOpacity style={styles.dockItem}>
+            <View style={styles.dockIcon}>
+              <Text style={styles.dockIconText}>💬</Text>
+            </View>
+            <Text style={styles.dockLabel}>消息</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.dockItem}>
+            <View style={styles.dockIcon}>
+              <Text style={styles.dockIconText}>🛠️</Text>
+            </View>
+            <Text style={styles.dockLabel}>工具</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.dockItem}>
+            <View style={styles.dockIcon}>
+              <Text style={styles.dockIconText}>⚙️</Text>
+            </View>
+            <Text style={styles.dockLabel}>设置</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.dockItem}>
+            <View style={styles.dockIcon}>
+              <Text style={styles.dockIconText}>👤</Text>
+            </View>
+            <Text style={styles.dockLabel}>我的</Text>
+          </TouchableOpacity>
+        </View>
       </View>
       
       <View style={styles.sidebar}>
@@ -301,39 +307,57 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   dock: {
-    width: 60,
-    backgroundColor: '#ffffff',
-    borderRightWidth: 1,
+    width: 70,
+    backgroundColor: '#f8f9fa',
+    borderRightWidth: 2,
     borderRightColor: '#e9ecef',
-    paddingVertical: 16,
+    justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 2, height: 0 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 4,
+    shadowColor: '#667eea',
+    shadowOffset: { width: 3, height: 0 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 6,
+  },
+  dockContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 10,
   },
   dockItem: {
     alignItems: 'center',
-    marginBottom: 20,
-    paddingVertical: 8,
-    paddingHorizontal: 4,
-    borderRadius: 8,
+    marginBottom: 12,
+    paddingVertical: 6,
+    paddingHorizontal: 6,
+    borderRadius: 12,
+    backgroundColor: 'transparent',
   },
   dockIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 8,
-    backgroundColor: '#f0f0f0',
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: '#ffffff',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 4,
+    marginBottom: 3,
+    borderWidth: 2,
+    borderColor: '#667eea',
+    shadowColor: '#667eea',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
   },
-  dockIconText: { fontSize: 16 },
+  dockIconText: { 
+    fontSize: 18,
+    textShadow: '0px 1px 2px rgba(102, 126, 234, 0.3)',
+  },
   dockLabel: {
-    fontSize: 10,
-    color: '#666666',
+    fontSize: 11,
+    color: '#667eea',
     textAlign: 'center',
+    fontWeight: '600',
+    marginTop: 1,
   },
   sidebar: {
     width: 280,
