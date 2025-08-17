@@ -173,6 +173,7 @@ public interface AgentMapper extends BaseMapper<AgentDO> {
 - **方法命名**: 遵循find(查多条)、get(查单条)、count(查数量)规范
 - **链式调用**: 优先使用queryChain()和updateChain()方法
 - **示例**:
+_ **方法功能规范**: Repository每个方法只能是单一职责，只能有一个查询，并且不能连表查询，需要多次组合查询必须在service层多次调用分别查询
 ```java
 public interface AgentRepository extends IService<AgentDO> {
     AgentConverter INSTANCE = Mappers.getMapper(AgentConverter.class);
@@ -229,6 +230,7 @@ druid:
 ### SQL查询规范
 - **禁止原生SQL**: 不允许使用 `@Select`, `@Update` 等原生SQL注解
 - **使用链式调用**: 优先使用 `queryChain()` 和 `updateChain()` 方法
+- **Repository限制**: Repository每个方法只能是单一职责，只能有一个查询，并且不能连表查询，如果需要查多个表必须在Repository层查询A后在Service层再调Repository查询B以此类推
 - **避免连表查询**: 复杂查询拆分为多个单表查询，在业务层组装
 - **分页查询**: 使用 `Page<T>` 对象进行分页
 - **条件查询**: 使用 `QueryWrapper` 构建查询条件

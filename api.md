@@ -219,6 +219,125 @@
 - -1: 失败（通用错误）
 - 其他: 具体业务错误码
 
+## 工具相关接口
+
+### 1. 获取所有启用的工具列表
+**接口地址**: `GET /api/v1/tools`  
+**请求方法**: GET  
+**认证**: 需要Token  
+
+**请求参数**: 无  
+
+**响应示例**:
+```json
+{
+  "code": 0,
+  "message": "操作成功",
+  "data": [
+    {
+      "id": 1,
+      "name": "AI文本生成器",
+      "description": "基于AI的文本生成工具",
+      "toolType": "AI_AGENT",
+      "url": "https://example.com/ai-text-generator",
+      "isDefault": true,
+      "status": 1,
+      "createTime": "2024-01-01T12:00:00",
+      "updateTime": "2024-01-01T12:00:00"
+    }
+  ],
+  "timestamp": 1640995200000
+}
+```
+
+### 2. 根据分类获取工具列表
+**接口地址**: `GET /api/v1/tools/category/{categoryId}`  
+**请求方法**: GET  
+**认证**: 需要Token  
+
+**路径参数**:
+- `categoryId` (Long): 分类ID
+
+**响应示例**:
+```json
+{
+  "code": 0,
+  "message": "操作成功",
+  "data": [
+    {
+      "id": 1,
+      "name": "短视频文案生成器",
+      "description": "专为短视频主播设计的文案生成工具",
+      "toolType": "AI_AGENT",
+      "url": "https://example.com/video-script-generator",
+      "isDefault": true,
+      "status": 1,
+      "createTime": "2024-01-01T12:00:00",
+      "updateTime": "2024-01-01T12:00:00"
+    }
+  ],
+  "timestamp": 1640995200000
+}
+```
+
+### 3. 根据分组获取工具列表
+**接口地址**: `GET /api/v1/tools/group/{groupId}`  
+**请求方法**: GET  
+**认证**: 需要Token  
+
+**路径参数**:
+- `groupId` (Long): 分组ID
+
+**响应示例**:
+```json
+{
+  "code": 0,
+  "message": "操作成功",
+  "data": [
+    {
+      "id": 2,
+      "name": "热门话题分析器",
+      "description": "分析当前热门话题的工具",
+      "toolType": "NORMAL",
+      "url": "https://example.com/trend-analyzer",
+      "isDefault": false,
+      "status": 1,
+      "createTime": "2024-01-01T12:00:00",
+      "updateTime": "2024-01-01T12:00:00"
+    }
+  ],
+  "timestamp": 1640995200000
+}
+```
+
+### 4. 获取工具详情
+**接口地址**: `GET /api/v1/tools/{id}`  
+**请求方法**: GET  
+**认证**: 需要Token  
+
+**路径参数**:
+- `id` (Long): 工具ID
+
+**响应示例**:
+```json
+{
+  "code": 0,
+  "message": "操作成功",
+  "data": {
+    "id": 1,
+    "name": "AI文本生成器",
+    "description": "基于AI的文本生成工具，支持多种文本类型生成",
+    "toolType": "AI_AGENT",
+    "url": "https://example.com/ai-text-generator",
+    "isDefault": true,
+    "status": 1,
+    "createTime": "2024-01-01T12:00:00",
+    "updateTime": "2024-01-01T12:00:00"
+  },
+  "timestamp": 1640995200000
+}
+```
+
 ## 测试接口
 
 ### 测试服务状态

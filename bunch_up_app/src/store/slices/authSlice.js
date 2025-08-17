@@ -7,6 +7,8 @@ export const login = createAsyncThunk(
   async ({phone, password}, {rejectWithValue}) => {
     try {
       const response = await authAPI.login(phone, password);
+      // 保存认证数据到本地存储
+      await saveAuthData(response.data);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data || '登录失败');
@@ -44,10 +46,19 @@ const initialState = {
   isAuthenticated: false,
   loading: false,
   error: null,
+  initialized: false,
 };
 
 const authSlice = createSlice({
   name: 'auth',
+  reducers: {
+    setAuthData: (state, action) => {
+      state.user = action.payload.user;
+      state.token = action.payload.token;
+      state.isAuthenticated = true;
+      state.initialized = true;
+    },
+  },
   initialState,
   reducers: {
     logout: (state) => {

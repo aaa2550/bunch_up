@@ -10,16 +10,21 @@ import {
 import { useSelector } from 'react-redux';
 import WebIcon from '../components/WebIcon';
 import { formatSessionTime } from '../utils/timeUtils';
+import ToolBar from '../components/ToolBar';
 
 const ChatListScreen = ({navigation}) => {
   const currentCategory = useSelector(state => state.category.currentCategory);
+  const { isAuthenticated } = useSelector(state => state.auth);
 
   useEffect(() => {
+    if (!isAuthenticated) {
+      navigation.replace('Login');
+      return;
+    }
     if (!currentCategory) {
-      // 如果没有选择类别，跳转到类别选择页面
       navigation.replace('Category');
     }
-  }, [currentCategory, navigation]);
+  }, [currentCategory, isAuthenticated, navigation]);
 
   // 模拟聊天列表数据
   const chatList = [
@@ -75,12 +80,15 @@ const ChatListScreen = ({navigation}) => {
 
   return (
     <View style={styles.container}>
-      <FlatList
-        data={chatList}
-        renderItem={renderChatItem}
-        keyExtractor={item => item.id.toString()}
-        showsVerticalScrollIndicator={false}
-      />
+      <View style={styles.content}>
+        <FlatList
+          data={chatList}
+          renderItem={renderChatItem}
+          keyExtractor={item => item.id.toString()}
+          showsVerticalScrollIndicator={false}
+        />
+      </View>
+      <ToolBar />
     </View>
   );
 };
@@ -88,7 +96,11 @@ const ChatListScreen = ({navigation}) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    flexDirection: 'row',
     backgroundColor: '#f5f5f5',
+  },
+  content: {
+    flex: 1,
   },
   chatItem: {
     flexDirection: 'row',

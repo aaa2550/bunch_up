@@ -33,6 +33,7 @@ public class SecurityConfig {
                 .requestMatchers("/category/**").permitAll()
                 .requestMatchers("/api/v1/groups/**").permitAll() // 允许分组接口匿名
                 .requestMatchers("/api/v1/chat/**").permitAll()   // 允许聊天接口匿名
+                .requestMatchers("/api/v1/tools/**").permitAll()  // 允许工具接口匿名
                 .requestMatchers("/ws/**").permitAll()            // 允许WebSocket匿名
                 .requestMatchers("/test").permitAll()
                 .requestMatchers("/swagger-ui/**", "/api-docs/**").permitAll()

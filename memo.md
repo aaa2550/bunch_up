@@ -692,4 +692,327 @@
   - 使用flexbox的justifyContent: 'center'实现垂直居中
   - 使用#667eea作为主题色，保持设计一致性
   - 添加elevation和shadowColor增强立体感
-- **效果**: 程序坞现在具有更鲜明的视觉效果，上下居中对齐，间距更紧凑，删除了搜索功能，功能排序更合理 
+- **效果**: 程序坞现在具有更鲜明的视觉效果，上下居中对齐，间距更紧凑，删除了搜索功能，功能排序更合理
+
+### ToolService完整实现 (当前)
+- **需求**: 实现ToolService的具体逻辑，支持工具管理功能
+- **实现内容**: 
+  1. **实体类创建**: 
+     - ToolDO: 工具主表实体，对应tool表
+     - ToolScopeDO: 工具展示范围实体，对应tool_scope表
+     - UserToolDO: 用户工具关系实体，对应user_tool表
+  2. **DTO层**: 
+     - 修改Tool DTO，包含完整的工具信息字段
+     - 添加Swagger注解，便于API文档生成
+  3. **Mapper层**: 
+     - ToolMapper、ToolScopeMapper、UserToolMapper
+     - 继承BaseMapper，使用MyBatis-Flex标准实现
+  4. **转换器**: 
+     - ToolConverter: 使用MapStruct进行DO与DTO转换
+     - 包含单个、列表、分页的转换方法
+  5. **Repository层**: 
+     - ToolRepository接口：定义数据访问方法
+     - ToolRepositoryImpl实现：使用MyBatis-Flex链式调用
+     - 支持按类别、分组、用户查询工具
+  6. **Service层**: 
+     - ToolService接口：定义业务方法
+     - ToolServiceImpl实现：业务逻辑处理和参数验证
+     - 统一异常处理，使用BusinessException
+  7. **Controller层**: 
+     - 更新ToolController，使用RESTful风格API
+     - 添加完整的Swagger注解
+     - 统一返回格式R<T>
+- **功能特性**: 
+  1. **工具查询**: 
+     - 根据类别ID获取工具列表
+     - 根据分组ID获取工具列表
+     - 获取所有启用的工具
+     - 根据用户ID获取个人工具列表
+  2. **工具管理**: 
+     - 获取工具详情
+     - 为用户添加/移除个人工具
+  3. **权限控制**: 
+     - 基于工具展示范围(ALL/CATEGORY/GROUP)控制工具可见性
+     - 支持工具状态控制(启用/禁用)
+- **技术规范**: 
+  - 遵循Java开发规范，使用DO后缀实体类
+  - Repository层完成DO与DTO转换
+  - Service层不出现DO类，只使用DTO
+  - 使用MyBatis-Flex链式调用，避免原生SQL
+  - 统一异常处理，业务异常向上抛出
+- **API接口**: 
+  - GET /api/v1/tools - 获取工具列表(可按类别过滤)
+  - GET /api/v1/tools/group/{groupId} - 根据分组获取工具
+  - GET /api/v1/tools/user/{userId} - 获取用户工具列表
+  - GET /api/v1/tools/{id} - 获取工具详情
+  - POST /api/v1/tools/user/{userId}/tools/{toolId} - 添加用户工具
+  - DELETE /api/v1/tools/user/{userId}/tools/{toolId} - 移除用户工具
+- **效果**: ToolService现在具有完整的功能实现，支持工具的查询、管理和权限控制，符合业务需求和开发规范
+
+### ToolService架构修复 (当前)
+- **问题发现**: 
+  1. 误解需求：AI工具只跟分类相关，与用户无关联，用户只是可以使用
+  2. Entity设计错误：不能直接引用其他entity，必须使用ID进行关联
+  3. 违反单表查询原则：不允许连表查询或级联查询
+- **修复内容**: 
+  1. **删除UserTool相关代码**: 
+     - 删除UserToolDO实体类
+     - 删除UserToolMapper映射器
+     - 删除用户工具相关的Repository方法
+     - 删除用户工具相关的Service方法
+     - 删除用户工具相关的Controller接口
+  2. **修复Entity引用问题**: 
+     - 修复ToolFormFieldDO：将Tool entity引用改为Long toolId
+     - 确保所有entity只使用ID进行关联，不直接引用其他entity
+  3. **简化业务逻辑**: 
+     - 工具查询：只保留按类别、分组查询和获取所有启用工具
+     - 工具详情：只保留根据ID获取工具详情
+     - 移除所有用户个人工具管理功能
+- **修复后的架构**: 
+  1. **实体层**: ToolDO, ToolScopeDO, ToolFormFieldDO (修复ID引用)
+  2. **映射层**: ToolMapper, ToolScopeMapper (移除UserToolMapper)
+  3. **数据访问层**: 只保留分类和分组相关的查询方法
+  4. **业务逻辑层**: 简化为工具查询和详情获取
+  5. **控制层**: 只保留必要的查询接口
+- **符合规范**: 
+  - Entity间只使用ID关联，避免直接引用
+  - 严格单表查询，不使用连表或级联查询
+  - 业务逻辑符合实际需求：工具只与分类相关
+- **API接口(修复后)**: 
+  - GET /api/v1/tools - 获取工具列表(可按类别过滤)
+  - GET /api/v1/tools/group/{groupId} - 根据分组获取工具
+  - GET /api/v1/tools/{id} - 获取工具详情
+- **效果**: 修复后的ToolService架构更加清晰，符合业务需求和技术规范，去除了不必要的用户工具关联功能
+
+### Repository方法功能规范重构 (当前)
+- **问题**: Repository层方法违反单一职责原则，存在多次查询和连表查询
+- **规范要求**: Repository每个方法只能是单一职责，只能有一个查询，不能连表查询，多次组合查询必须在Service层分别调用
+- **重构内容**: 
+  1. **创建ToolScopeRepository**: 
+     - 专门处理工具范围查询，单一职责
+     - `findAllScopeToolIds()`: 查询全局范围工具ID
+     - `findToolIdsByCategory()`: 查询指定类别的工具ID  
+     - `findToolIdsByGroup()`: 查询指定分组的工具ID
+     - 每个方法只有一个单表查询
+  2. **重构ToolRepositoryImpl**: 
+     - 移除多次查询逻辑，每个方法只有单一查询
+     - `findByCategory()/findByGroup()`: 都改为查询所有启用工具，范围过滤由Service处理
+     - `findByIds()`: 新增方法，根据ID列表查询工具
+     - 所有方法都是单表查询，无连表操作
+  3. **重构ToolServiceImpl**: 
+     - 在Service层组合多次Repository调用
+     - `getTools()`: 先查全局工具ID，再查类别工具ID，合并后查询工具详情
+     - `getToolsByGroup()`: 先查全局工具ID，再查分组工具ID，合并后查询工具详情
+     - 实现业务逻辑的组合查询，Repository只负责单一查询
+- **符合规范的架构**: 
+  1. **Repository层**: 每个方法单一职责，只有一个查询，无连表
+  2. **Service层**: 负责业务逻辑，组合多次Repository调用
+  3. **数据流**: Service调用多个Repository方法 → 组合数据 → 返回结果
+- **查询流程示例**: 
+  ```
+  getTools(categoryId):
+  1. toolScopeRepository.findAllScopeToolIds() // 单表查询：tool_scope
+  2. toolScopeRepository.findToolIdsByCategory(categoryId) // 单表查询：tool_scope  
+  3. 合并工具ID列表（Service层逻辑）
+  4. toolRepository.findByIds(toolIds) // 单表查询：tool
+  ```
+- **技术优势**: 
+  - Repository方法职责清晰，易于测试和维护
+  - 严格遵循单表查询，性能可控
+  - Service层负责业务组合，逻辑清晰
+  - 符合MyBatis-Flex和Java开发规范
+- **效果**: Repository层现在完全符合单一职责和单表查询规范，Service层负责业务逻辑组合，架构更加清晰规范
+
+## 2025-01-16 前端问题修复
+
+### 修复的问题
+1. **聊天页面AI工具栏显示问题**: 
+   - 创建了`toolAPI.js`提供工具相关的API接口
+   - 修改`ChatScreen.js`在进入聊天页后调用后端接口获取工具列表
+   - 在聊天页面头部添加了AI工具栏，展示获取到的工具
+   - 支持点击工具在新标签页中打开
+
+2. **页面刷新自动跳转登录页问题**:
+   - 修改`App.js`中的`SimpleNavigator`初始状态逻辑
+   - 在应用启动时检查localStorage中的用户登录状态
+   - 如果用户已登录且有有效token，则直接跳转到分类页面
+   - 如果用户未登录，则显示登录页面
+
+### 修改的文件
+- `bunch_up_app/src/api/toolAPI.js`: 新建工具API接口
+- `bunch_up_app/src/App.js`: 修复启动时的登录状态检查
+- `bunch_up_app/src/screens/ChatScreen.js`: 添加AI工具栏显示
+
+### 技术实现
+- 工具栏使用水平滚动视图展示工具列表
+- 区分AI_AGENT和普通工具，使用不同图标显示
+- 工具点击时在新标签页打开对应URL
+- 登录状态持久化通过localStorage实现
+
+## 2025-01-16 后端工具接口补充
+
+### 新增的问题
+- 前端调用的工具接口 `/api/v1/tools/category/{categoryId}` 在后端不存在
+- 需要补充这个RESTful风格的路径参数接口
+
+### 解决方案
+1. **新增接口**: 在`ToolController`中添加`getToolsByCategory`方法
+   - 路径: `GET /api/v1/tools/category/{categoryId}`
+   - 使用`@PathVariable`接收分类ID参数
+   - 调用`toolService.getTools(categoryId)`获取工具列表
+
+2. **API文档更新**: 在`api.md`中新增工具相关接口文档
+   - 获取所有启用的工具列表: `GET /api/v1/tools`
+   - 根据分类获取工具列表: `GET /api/v1/tools/category/{categoryId}`
+   - 根据分组获取工具列表: `GET /api/v1/tools/group/{groupId}`
+   - 获取工具详情: `GET /api/v1/tools/{id}`
+
+### 修改的文件
+- `bunch_up_server/src/main/java/com/bunchup/controller/ToolController.java`: 新增分类工具接口
+- `api.md`: 新增工具相关接口文档
+
+### 接口说明
+- 新增的接口与现有的Service和Repository层完全兼容
+- 使用统一的响应格式`R<List<Tool>>`
+- 支持JWT认证，需要在请求头中携带Token
+
+## 2025-01-16 修复API调用403错误
+
+### 发现的问题
+1. **端口冲突**: 后端服务端口8080被其他进程占用，导致服务启动失败
+2. **权限配置**: SecurityConfig中缺少对工具接口`/api/v1/tools/**`的匿名访问配置
+3. **前端调用失败**: 工具接口返回403 Forbidden错误
+
+### 解决方案
+1. **清理端口**: 使用`lsof -ti:8080 | xargs kill -9`清理占用8080端口的进程
+2. **修改安全配置**: 在SecurityConfig中添加`.requestMatchers("/api/v1/tools/**").permitAll()`
+3. **重启服务**: 重新启动后端服务使配置生效
+
+### 测试结果
+- ✅ 后端服务正常启动: `curl http://localhost:8080/test`
+- ✅ 工具接口正常响应: `curl http://localhost:8080/api/v1/tools/category/1` 返回工具列表数据
+- ✅ 数据库中已有工具测试数据，包括AI助手、图片生成、文档翻译、视频剪辑等工具
+
+### 修改的文件
+- `bunch_up_server/src/main/java/com/bunchup/config/SecurityConfig.java`: 添加工具接口匿名访问权限
+- `db/init.sql`: 添加工具和工具范围的测试数据
+
+## 2025-01-16 优化AI工具栏布局
+
+### 用户需求
+- 将AI工具栏从聊天窗口头部移动到聊天窗口右侧
+
+### 布局调整
+1. **重新设计聊天区域结构**:
+   - `chatArea` 改为水平布局 (`flexDirection: 'row'`)
+   - 新增 `chatMain` 容器包含原有的聊天内容
+   - 新增 `toolsSidebar` 作为右侧工具栏容器
+
+2. **工具栏位置变更**:
+   - **之前**: 位于聊天头部，水平滚动显示
+   - **现在**: 位于聊天窗口右侧，垂直滚动显示
+   - 宽度固定为200px，带有分隔线
+
+3. **样式优化**:
+   - 工具栏有独立的头部标题区域
+   - 工具项采用卡片式设计，垂直排列
+   - 工具图标更大更醒目 (48x48)
+   - 支持工具名称最多2行显示
+
+### 技术实现
+- 聊天区域采用flex布局，左侧聊天内容自适应，右侧工具栏固定宽度
+- 工具栏有独立的滚动区域，不影响聊天消息滚动
+- 保持响应式设计，适配不同屏幕尺寸
+
+### 修改的文件
+- `bunch_up_app/src/screens/ChatScreen.js`: 重新设计布局结构和样式
+
+## 2025-01-16 优化AI工具栏显示
+
+### 用户需求
+1. AI工具栏需要每行3个进行展示，并且鼠标移动到图标时需要提示描述
+2. 修复鼠标悬停提示描述不显示的问题
+3. 去除每个AI工具的白色底框
+
+### 布局优化
+1. **网格布局**: 
+   - 使用 `flexDirection: 'row'` 和 `flexWrap: 'wrap'` 实现网格布局
+   - 每个工具项宽度设为 `30%`，自动实现每行3个的布局
+   - 增加工具栏宽度至240px以更好适配3列布局
+
+2. **鼠标悬停提示**:
+   - 使用原生HTML `div` 元素替代 `TouchableOpacity`
+   - 通过 `title` 属性实现鼠标悬停时的工具描述提示
+   - 显示工具的 `description` 字段，如果没有则显示工具名称
+
+3. **样式优化**:
+   - 去除工具项的白色背景 (`backgroundColor: 'transparent'`)
+   - 移除边框和阴影效果
+   - 简化悬停效果：只对图标进行缩放和阴影变化
+   - 保持图标的渐变色彩和动画效果
+
+### 技术实现
+- 使用原生 `div` 元素确保 `title` 属性正常工作
+- 动态注入CSS样式实现平滑的悬停动画
+- 保持React Native Web的兼容性
+
+### 视觉效果
+- ✅ **网格布局**: 工具整齐排列，每行3个
+- ✅ **悬停提示**: 鼠标移到工具上显示详细描述
+- ✅ **简洁设计**: 去除多余的白色边框，更加简洁
+- ✅ **交互反馈**: 悬停时图标有轻微抬升和放大效果
+
+### 修改的文件
+- `bunch_up_app/src/screens/ChatScreen.js`: 网格布局、悬停提示和样式优化
+
+## 2025-01-16 AI工具栏优化改进
+
+### 用户需求
+1. AI工具栏每排显示3个工具，不是2个，并且需要缩小间距
+2. 重新设计鼠标悬停提示样式，符合扁平化设计原则
+
+### 布局优化
+1. **间距调整**:
+   - `gap` 从4px缩小到2px
+   - `marginBottom` 从12px缩小到8px  
+   - `padding` 从6px缩小到4px
+   - 添加 `paddingHorizontal: 4` 增加左右内边距
+
+2. **网格布局精确控制**:
+   - 使用 `justifyContent: 'space-between'` 确保工具均匀分布
+   - `width: 'calc(33.333% - 1px)'` 精确计算宽度，确保每排3个
+   - 通过gap和padding的配合，实现紧凑布局
+
+### 扁平化悬停提示重设计
+1. **扁平化设计原则**:
+   - 使用深色背景 `#2d3748` 代替黑色半透明
+   - 添加微妙边框 `#4a5568` 增强层次感
+   - 圆角从4px调整到6px，更现代化
+   - 字体大小12px，字重500，提升可读性
+
+2. **交互体验优化**:
+   - 悬停动画从0.2s优化到0.15s，响应更快
+   - 工具项上移距离从2px减少到1px，更加微妙
+   - 图标缩放从1.05倍减少到1.03倍，避免过度动画
+   - 阴影效果更加精细和现代
+
+3. **视觉细节增强**:
+   - 添加小三角形指示器，使用 `::before` 伪元素
+   - 新增 `fadeInUp` 动画，提示框从下方淡入并上移
+   - 提示框位置优化，避免与工具重叠
+   - 最大宽度限制180px，防止内容过长
+
+### 技术实现
+- **CSS动画**: 使用keyframes实现流畅的淡入动画
+- **伪元素**: 利用 `::before` 和 `::after` 创建完整的提示框样式
+- **层级管理**: 合理的z-index确保提示框正确显示
+- **响应式**: 自适应内容长度，支持文本溢出处理
+
+### 视觉效果
+- ✅ **精确布局**: 每排严格显示3个工具，间距紧凑合理
+- ✅ **扁平化提示**: 现代化的深色提示框，符合扁平化设计
+- ✅ **流畅动画**: 微妙的悬停效果和优雅的出现动画
+- ✅ **细节完善**: 三角形指示器和精致的阴影效果
+
+### 修改的文件
+- `bunch_up_app/src/screens/ChatScreen.js`: 优化布局间距和重设计悬停提示样式

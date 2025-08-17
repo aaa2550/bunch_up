@@ -199,7 +199,30 @@ INSERT INTO `chat_message` (`user_id`, `user_name`, `group_id`, `content`, `mess
 (5, '钱七', 7, '代码质量很重要', 1, DATE_SUB(NOW(), INTERVAL 30 MINUTE), 1)
 ON DUPLICATE KEY UPDATE user_name=VALUES(user_name), content=VALUES(content), send_time=VALUES(send_time), status=VALUES(status);
 
--- 其他插入语句...
+-- 插入工具测试数据
+INSERT INTO `tool` (`id`, `name`, `description`, `icon`, `tool_type`, `url`, `is_default`, `status`) VALUES
+(1, 'AI文案生成器', '基于AI技术的智能文案生成工具，为短视频主播提供创意内容', 'https://example.com/icons/ai-writer.png', 'AI_AGENT', 'https://example.com/ai-writer', 1, 1),
+(2, '热门话题分析', '分析当前热门话题和趋势，帮助主播抓住流量密码', 'https://example.com/icons/trend-analyzer.png', 'NORMAL', 'https://example.com/trend-analyzer', 1, 1),
+(3, '直播数据统计', '实时统计直播数据，包括观看人数、互动率等关键指标', 'https://example.com/icons/data-stats.png', 'NORMAL', 'https://example.com/data-stats', 0, 1),
+(4, '智能回复助手', 'AI智能回复助手，快速响应粉丝评论和私信', 'https://example.com/icons/auto-reply.png', 'AI_AGENT', 'https://example.com/auto-reply', 1, 1),
+(5, '音频降噪工具', '专业音频降噪处理工具，提升直播音质', 'https://example.com/icons/audio-noise.png', 'NORMAL', 'https://example.com/audio-tool', 0, 1)
+ON DUPLICATE KEY UPDATE name=VALUES(name), description=VALUES(description), tool_type=VALUES(tool_type), url=VALUES(url), is_default=VALUES(is_default), status=VALUES(status);
+
+-- 插入工具展示范围数据
+INSERT INTO `tool_scope` (`id`, `tool_id`, `scope_type`, `scope_value`) VALUES
+-- 全局工具（所有分类都能看到）
+(1, 1, 'ALL', NULL),  -- AI文案生成器 - 全局
+(2, 4, 'ALL', NULL),  -- 智能回复助手 - 全局
+
+-- 短视频主播分类专用工具
+(3, 2, 'CATEGORY', 1), -- 热门话题分析 - 短视频主播分类
+(4, 3, 'CATEGORY', 1), -- 直播数据统计 - 短视频主播分类
+(5, 5, 'CATEGORY', 1), -- 音频降噪工具 - 短视频主播分类
+
+-- 分组专用工具（可以根据需要添加）
+(6, 2, 'GROUP', 1),    -- 热门话题分析 - 新手主播交流群
+(7, 3, 'GROUP', 2)     -- 直播数据统计 - 资深主播分享群
+ON DUPLICATE KEY UPDATE tool_id=VALUES(tool_id), scope_type=VALUES(scope_type), scope_value=VALUES(scope_value);
 
 -- 初始化完成提示
 SELECT '数据库初始化完成！' AS message;

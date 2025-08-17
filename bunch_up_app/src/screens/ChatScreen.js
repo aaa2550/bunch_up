@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import useWebSocket from '../hooks/useWebSocket';
 import { fetchGroupsByCategory, fetchMessagesByGroup, fetchGroupOnlineCount } from '../api/chatAPI';
+import { fetchToolsByCategory } from '../api/toolAPI';
 import { formatChatTime, shouldShowTime, formatFullDateTime, isSameDay } from '../utils/timeUtils';
 
 const ChatScreen = ({ navigation, route }) => {
@@ -19,8 +20,85 @@ const ChatScreen = ({ navigation, route }) => {
   const [messages, setMessages] = useState([]);
   const [groups, setGroups] = useState([]);
   const [onlineCount, setOnlineCount] = useState(0);
+  const [tools, setTools] = useState([]);
   const scrollViewRef = useRef();
   const subscription = useRef(null);
+
+  // 动态添加鼠标悬停样式
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = `
+      .tool-item:hover {
+        transform: translateY(-1px);
+        background-color: rgba(102, 126, 234, 0.08);
+      }
+      .tool-item:hover .tool-icon {
+        background-color: #5a67d8;
+        transform: scale(1.03);
+        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.25);
+      }
+      .tool-item {
+        transition: all 0.15s ease;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+      }
+      .tool-icon {
+        transition: all 0.15s ease;
+      }
+      /* 扁平化tooltip样式 */
+      .tool-item[title]:hover::after {
+        content: attr(title);
+        position: absolute;
+        bottom: -32px;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: #2d3748;
+        color: #ffffff;
+        padding: 6px 10px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 500;
+        white-space: nowrap;
+        z-index: 1000;
+        max-width: 180px;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        border: 1px solid #4a5568;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        animation: fadeInUp 0.2s ease;
+      }
+      .tool-item[title]:hover::before {
+        content: '';
+        position: absolute;
+        bottom: -26px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 0;
+        height: 0;
+        border-left: 5px solid transparent;
+        border-right: 5px solid transparent;
+        border-bottom: 5px solid #2d3748;
+        z-index: 1001;
+      }
+      @keyframes fadeInUp {
+        0% {
+          opacity: 0;
+          transform: translateX(-50%) translateY(4px);
+        }
+        100% {
+          opacity: 1;
+          transform: translateX(-50%) translateY(0);
+        }
+      }
+    `;
+    document.head.appendChild(style);
+    
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
 
   // 获取当前登录用户信息
   const user = JSON.parse(localStorage.getItem('user') || '{}');
@@ -48,13 +126,23 @@ const ChatScreen = ({ navigation, route }) => {
     let isMounted = true;
     (async () => {
       try {
-        const groupList = await fetchGroupsByCategory(category.id);
+        // 同时获取分组列表和工具列表
+        const [groupList, toolList] = await Promise.all([
+          fetchGroupsByCategory(category.id),
+          fetchToolsByCategory(category.id)
+        ]);
+        
         if (isMounted) {
           setGroups(groupList);
+          setTools(toolList || []);
+          console.log('ChatScreen - 获取到的工具列表:', toolList);
+          
           if (groupList.length > 0) handleGroupSelect(groupList[0]);
         }
       } catch (e) {
+        console.error('ChatScreen - 获取数据失败:', e);
         setGroups([]);
+        setTools([]);
       }
     })();
     return () => { isMounted = false; };
@@ -255,41 +343,83 @@ const ChatScreen = ({ navigation, route }) => {
       </View>
       
       <View style={styles.chatArea}>
-        <View style={styles.chatHeader}>
-          <Text style={styles.chatTitle}>{currentGroup?.name || '选择分组'}</Text>
-          <Text style={styles.chatSubtitle}>{onlineCount}人</Text>
-        </View>
-        
-        <ScrollView 
-            ref={scrollViewRef} 
-            style={styles.messageList} 
-            showsVerticalScrollIndicator={false}
-            onContentSizeChange={() => scrollViewRef.current.scrollToEnd({ animated: true })}
-        >
-          {messages.map((item, index) => (
-            <View key={item.id || item.sendTime || Math.random()}>
-              {renderMessage({ item, index })}
-            </View>
-          ))}
-        </ScrollView>
+        {/* 聊天主体区域 */}
+        <View style={styles.chatMain}>
+          <View style={styles.chatHeader}>
+            <Text style={styles.chatTitle}>{currentGroup?.name || '选择分组'}</Text>
+            <Text style={styles.chatSubtitle}>{onlineCount}人</Text>
+          </View>
+          
+          <ScrollView 
+              ref={scrollViewRef} 
+              style={styles.messageList} 
+              showsVerticalScrollIndicator={false}
+              onContentSizeChange={() => scrollViewRef.current.scrollToEnd({ animated: true })}
+          >
+            {messages.map((item, index) => (
+              <View key={item.id || item.sendTime || Math.random()}>
+                {renderMessage({ item, index })}
+              </View>
+            ))}
+          </ScrollView>
 
-        <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.input}
-            placeholder="输入消息..."
-            value={message}
-            onChangeText={setMessage}
-            multiline
-            onKeyPress={handleKeyPress}
-          />
-          <TouchableOpacity
-            style={styles.sendButton}
-            onPress={handleSendMessage}>
-            <Text style={styles.sendButtonText}>
-              发送
-            </Text>
-          </TouchableOpacity>
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.input}
+              placeholder="输入消息..."
+              value={message}
+              onChangeText={setMessage}
+              multiline
+              onKeyPress={handleKeyPress}
+            />
+            <TouchableOpacity
+              style={styles.sendButton}
+              onPress={handleSendMessage}>
+              <Text style={styles.sendButtonText}>
+                发送
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
+
+        {/* AI工具栏 - 右侧 */}
+        {tools.length > 0 && (
+          <View style={styles.toolsSidebar}>
+            <View style={styles.toolsHeader}>
+              <Text style={styles.toolsTitle}>AI工具</Text>
+            </View>
+            <ScrollView 
+              showsVerticalScrollIndicator={false}
+              style={styles.toolsScrollView}
+            >
+              <View style={styles.toolsGrid}>
+                {tools.map((tool) => (
+                  <div
+                    key={tool.id}
+                    className="tool-item"
+                    title={tool.description || tool.name} // 悬停提示
+                    style={styles.toolItem}
+                    onClick={() => {
+                      if (tool.url) {
+                        // 在新标签页中打开工具
+                        window.open(tool.url, '_blank');
+                      }
+                    }}
+                  >
+                    <View style={styles.toolIcon} className="tool-icon">
+                      <Text style={styles.toolIconText}>
+                        {tool.toolType === 'AI_AGENT' ? '🤖' : '🛠️'}
+                      </Text>
+                    </View>
+                    <Text style={styles.toolName} numberOfLines={2}>
+                      {tool.name}
+                    </Text>
+                  </div>
+                ))}
+              </View>
+            </ScrollView>
+          </View>
+        )}
       </View>
     </View>
   );
@@ -417,7 +547,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#ffffff',
     display: 'flex',
-    flexDirection: 'column',
+    flexDirection: 'row',
     borderRadius: 12,
     margin: 16,
     shadowColor: '#000',
@@ -428,6 +558,11 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     height: 'calc(100vh - 32px)',
     maxHeight: 'calc(100vh - 32px)',
+  },
+  chatMain: {
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
   },
   chatHeader: {
     flexDirection: 'row',
@@ -595,6 +730,75 @@ const styles = StyleSheet.create({
   timeText: {
     fontSize: 11,
     color: '#999999',
+  },
+  // AI工具栏样式 - 右侧边栏
+  toolsSidebar: {
+    width: 240,
+    backgroundColor: '#f8f9fa',
+    borderLeftWidth: 1,
+    borderLeftColor: '#e9ecef',
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  toolsHeader: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e9ecef',
+    backgroundColor: '#ffffff',
+  },
+  toolsTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1976d2',
+    textAlign: 'center',
+  },
+  toolsScrollView: {
+    flex: 1,
+    padding: 8,
+  },
+  toolsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    gap: 2,
+    paddingHorizontal: 4,
+  },
+  toolItem: {
+    alignItems: 'center',
+    width: 'calc(33.333% - 1px)',
+    marginBottom: 8,
+    padding: 4,
+    backgroundColor: 'transparent',
+    borderRadius: 8,
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
+  },
+  toolIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 8,
+    backgroundColor: '#667eea',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 4,
+    shadowColor: '#667eea',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  toolIconText: {
+    fontSize: 16,
+    filter: 'drop-shadow(0px 1px 2px rgba(255, 255, 255, 0.8))',
+  },
+  toolName: {
+    fontSize: 10,
+    color: '#333333',
+    textAlign: 'center',
+    fontWeight: '500',
+    lineHeight: 12,
+    height: 24,
   },
 });
 

@@ -49,7 +49,25 @@ class ErrorBoundary extends React.Component {
 
 // 简单的导航模拟
 const SimpleNavigator = () => {
-  const [currentScreen, setCurrentScreen] = React.useState('Login');
+  // 在启动时检查用户是否已登录
+  const [currentScreen, setCurrentScreen] = React.useState(() => {
+    try {
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      console.log('App启动 - 检查用户登录状态:', user);
+      
+      // 检查用户是否有有效的登录信息
+      if (user.id && user.token) {
+        console.log('App启动 - 用户已登录，跳转到分类页面');
+        return 'Category';
+      } else {
+        console.log('App启动 - 用户未登录，显示登录页面');
+        return 'Login';
+      }
+    } catch (error) {
+      console.error('App启动 - 检查登录状态时出错:', error);
+      return 'Login';
+    }
+  });
   const [currentCategory, setCurrentCategory] = React.useState(null);
   
   const navigation = {
