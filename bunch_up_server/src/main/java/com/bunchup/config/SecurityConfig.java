@@ -13,6 +13,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * Spring Security配置类
@@ -33,6 +34,7 @@ public class SecurityConfig {
                 .requestMatchers("/category/**").permitAll()
                 .requestMatchers("/api/v1/groups/**").permitAll() // 允许分组接口匿名
                 .requestMatchers("/api/v1/chat/**").permitAll()   // 允许聊天接口匿名
+                .requestMatchers("/api/v1/tools/**").permitAll()  // 允许AI工具接口匿名
                 .requestMatchers("/ws/**").permitAll()            // 允许WebSocket匿名
                 .requestMatchers("/test").permitAll()
                 .requestMatchers("/swagger-ui/**", "/api-docs/**").permitAll()
@@ -53,9 +55,9 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(Arrays.asList("*"));
+        configuration.setAllowedOriginPatterns(List.of("*"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
         
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

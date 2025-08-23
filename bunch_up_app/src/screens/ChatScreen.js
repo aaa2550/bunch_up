@@ -11,6 +11,7 @@ import {
 import useWebSocket from '../hooks/useWebSocket';
 import { fetchGroupsByCategory, fetchMessagesByGroup, fetchGroupOnlineCount } from '../api/chatAPI';
 import { formatChatTime, shouldShowTime, formatFullDateTime, isSameDay } from '../utils/timeUtils';
+import AIToolBar from '../components/AIToolBar';
 
 const ChatScreen = ({ navigation, route }) => {
   const { category } = route.params || {};
@@ -240,7 +241,7 @@ const ChatScreen = ({ navigation, route }) => {
           </TouchableOpacity>
         </View>
       </View>
-      
+
       <View style={styles.sidebar}>
         <View style={styles.sidebarHeader}>
           <Text style={styles.sidebarTitle}>分组列表</Text>
@@ -253,16 +254,16 @@ const ChatScreen = ({ navigation, route }) => {
           style={styles.groupList}
         />
       </View>
-      
+
       <View style={styles.chatArea}>
         <View style={styles.chatHeader}>
           <Text style={styles.chatTitle}>{currentGroup?.name || '选择分组'}</Text>
           <Text style={styles.chatSubtitle}>{onlineCount}人</Text>
         </View>
-        
-        <ScrollView 
-            ref={scrollViewRef} 
-            style={styles.messageList} 
+
+        <ScrollView
+            ref={scrollViewRef}
+            style={styles.messageList}
             showsVerticalScrollIndicator={false}
             onContentSizeChange={() => scrollViewRef.current.scrollToEnd({ animated: true })}
         >
@@ -291,6 +292,12 @@ const ChatScreen = ({ navigation, route }) => {
           </TouchableOpacity>
         </View>
       </View>
+
+      {/* AI工具栏 */}
+      <AIToolBar categoryId={category?.id} onToolClick={tool => {
+        // 这里可以弹窗或跳转工具详情
+        alert(`点击了工具：${tool.name}`);
+      }} />
     </View>
   );
 };
