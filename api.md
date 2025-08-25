@@ -214,6 +214,94 @@
 }
 ```
 
+## 工具相关接口
+
+### 1. 根据分类获取工具列表
+**接口地址**: `GET /api/v1/tools`  
+**请求方法**: GET  
+**认证**: 不需要认证  
+
+**查询参数**:
+- categoryId: 分类ID（可选）
+
+**响应示例**:
+```json
+{
+  "code": 0,
+  "message": "操作成功",
+  "data": [
+    {
+      "id": 1,
+      "name": "视频编辑器",
+      "description": "专业视频编辑工具",
+      "icon": "/icons/video-editor.png",
+      "toolType": "NORMAL",
+      "url": "/tools/video-editor",
+      "isDefault": true,
+      "status": 1
+    },
+    {
+      "id": 2,
+      "name": "内容生成AI",
+      "description": "AI内容创作助手",
+      "icon": "/icons/ai-content.png",
+      "toolType": "AGENT",
+      "url": "/tools/ai-content",
+      "isDefault": true,
+      "status": 1
+    },
+    {
+      "id": 7,
+      "name": "通用计算器",
+      "description": "多功能计算器工具",
+      "icon": "/icons/calculator.png",
+      "toolType": "NORMAL",
+      "url": "/tools/calculator",
+      "isDefault": true,
+      "status": 1
+    }
+  ],
+  "timestamp": 1640995200000
+}
+```
+
+### 2. 根据分组获取工具列表
+**接口地址**: `GET /api/v1/tools/group`  
+**请求方法**: GET  
+**认证**: 不需要认证  
+
+**查询参数**:
+- groupId: 分组ID（必需）
+
+**响应示例**:
+```json
+{
+  "code": 0,
+  "message": "操作成功",
+  "data": [
+    {
+      "id": 7,
+      "name": "通用计算器",
+      "description": "多功能计算器工具",
+      "icon": "/icons/calculator.png",
+      "toolType": "NORMAL",
+      "url": "/tools/calculator",
+      "isDefault": true,
+      "status": 1
+    }
+  ],
+  "timestamp": 1640995200000
+}
+```
+
+**说明**:
+- 工具与分类/分组的关系通过`tool_scope`表维护
+- `scope_type`字段指定范围类型：
+  - `ALL`: 全局工具，在所有分类和分组中都显示
+  - `CATEGORY`: 指定分类工具，只在指定分类中显示
+  - `GROUP`: 指定分组工具，只在指定分组中显示
+- 查询时返回全局工具 + 指定范围内的工具
+
 ## 错误码说明
 - 0: 成功
 - -1: 失败（通用错误）

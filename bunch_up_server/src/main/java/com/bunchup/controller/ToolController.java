@@ -21,7 +21,7 @@ public class ToolController {
     @Autowired
     private ToolService toolService;
 
-    @Operation(summary = "根据分类获取AI工具（返回全局通用 + 指定分类工具）")
+    @Operation(summary = "根据分类获取工具（返回全局通用 + 指定分类工具）")
     @GetMapping
     public R<List<Tool>> getTools(@RequestParam(required = false) Long categoryId) {
         List<Tool> tools = toolService.findByCategory(categoryId);

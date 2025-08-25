@@ -18,11 +18,11 @@ public class ToolDO {
 
     private String icon;
 
-    private String type; // AGENT 或 NORMAL
+    private String toolType; // NORMAL-普通工具，AGENT-AI工具
+    
+    private String url; // 工具URL
 
     private Integer isDefault;
-
-    private Long categoryId; // 若为空则为全局通用
 
     private Integer status; // 1 正常 0 禁用
 
@@ -39,12 +39,13 @@ public class ToolDO {
     public void setDescription(String description) { this.description = description; }
     public String getIcon() { return icon; }
     public void setIcon(String icon) { this.icon = icon; }
-    public String getType() { return type; }
-    public void setType(String type) { this.type = type; }
+    public String getToolType() { return toolType; }
+    public void setToolType(String toolType) { this.toolType = toolType; }
+    public String getUrl() { return url; }
+    public void setUrl(String url) { this.url = url; }
     public Integer getIsDefault() { return isDefault; }
     public void setIsDefault(Integer isDefault) { this.isDefault = isDefault; }
-    public Long getCategoryId() { return categoryId; }
-    public void setCategoryId(Long categoryId) { this.categoryId = categoryId; }
+
     public Integer getStatus() { return status; }
     public void setStatus(Integer status) { this.status = status; }
     public LocalDateTime getCreateTime() { return createTime; }

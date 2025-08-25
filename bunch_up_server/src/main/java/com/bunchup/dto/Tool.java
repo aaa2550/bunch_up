@@ -10,8 +10,8 @@ public class Tool {
     private String name;
     private String description;
     private String icon;
-    private String type; // AGENT or NORMAL
+    private String toolType; // NORMAL-普通工具，AGENT-AI工具
+    private String url; // 工具URL
     private Boolean isDefault;
-    private Long categoryId; // null for global
     private Integer status;
 }

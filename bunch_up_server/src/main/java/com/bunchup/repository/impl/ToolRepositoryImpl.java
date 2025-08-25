@@ -25,12 +25,13 @@ public class ToolRepositoryImpl implements ToolRepository {
             t.setName(d.getName());
             t.setDescription(d.getDescription());
             t.setIcon(d.getIcon());
-            t.setType(d.getType());
+            t.setToolType(d.getToolType());
+            t.setUrl(d.getUrl());
             t.setIsDefault(d.getIsDefault() != null && d.getIsDefault() == 1);
-            t.setCategoryId(d.getCategoryId());
             t.setStatus(d.getStatus());
             result.add(t);
         }
         return result;
     }
+
 }

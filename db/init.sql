@@ -199,7 +199,117 @@ INSERT INTO `chat_message` (`user_id`, `user_name`, `group_id`, `content`, `mess
 (5, '钱七', 7, '代码质量很重要', 1, DATE_SUB(NOW(), INTERVAL 30 MINUTE), 1)
 ON DUPLICATE KEY UPDATE user_name=VALUES(user_name), content=VALUES(content), send_time=VALUES(send_time), status=VALUES(status);
 
+-- 插入工具数据
+INSERT INTO `tool` (`id`, `name`, `description`, `icon`, `tool_type`, `url`, `is_default`, `status`) VALUES
+(1, '视频编辑器', '专业视频编辑工具', '/icons/video-editor.png', 'NORMAL', '/tools/video-editor', 1, 1),
+(2, '内容生成AI', 'AI内容创作助手', '/icons/ai-content.png', 'AGENT', '/tools/ai-content', 1, 1),
+(3, '股票分析工具', '实时股票分析平台', '/icons/stock-analyzer.png', 'NORMAL', '/tools/stock-analyzer', 0, 1),
+(4, '投资顾问AI', 'AI投资建议助手', '/icons/ai-advisor.png', 'AGENT', '/tools/ai-advisor', 0, 1),
+(5, '代码生成器', '智能代码生成工具', '/icons/code-generator.png', 'AGENT', '/tools/code-generator', 0, 1),
+(6, '设计助手', 'AI设计创意工具', '/icons/design-assistant.png', 'AGENT', '/tools/design-assistant', 0, 1),
+(7, '通用计算器', '多功能计算器工具', '/icons/calculator.png', 'NORMAL', '/tools/calculator', 1, 1),
+(8, '财经新闻爬虫', '实时财经新闻抓取工具', '/icons/news-crawler.png', 'NORMAL', '/tools/news-crawler', 0, 1),
+(9, '经济指标分析', 'AI经济指标分析助手', '/icons/economic-analysis.png', 'AGENT', '/tools/economic-analysis', 0, 1)
+ON DUPLICATE KEY UPDATE name=VALUES(name), description=VALUES(description), icon=VALUES(icon), tool_type=VALUES(tool_type), url=VALUES(url), is_default=VALUES(is_default), status=VALUES(status);
+
+-- 插入工具展示范围数据
+INSERT INTO `tool_scope` (`tool_id`, `scope_type`, `target_id`) VALUES
+-- 全局工具
+(7, 'ALL', NULL),
+-- 短视频主播类别工具
+(1, 'CATEGORY', 1),
+(2, 'CATEGORY', 1),
+-- 炒股类别工具
+(3, 'CATEGORY', 2),
+(4, 'CATEGORY', 2),
+-- 财经类别工具
+(8, 'CATEGORY', 3),
+(9, 'CATEGORY', 3),
+-- 程序员类别工具
+(5, 'CATEGORY', 4),
+-- 设计师类别工具
+(6, 'CATEGORY', 5)
+ON DUPLICATE KEY UPDATE tool_id=VALUES(tool_id), scope_type=VALUES(scope_type), target_id=VALUES(target_id);
+
 -- 其他插入语句...
 
 -- 初始化完成提示
 SELECT '数据库初始化完成！' AS message;
+
+-- ========================================
+-- 2024-08-23 更新: 修复分类和工具多对多关系
+-- ========================================
+
+-- 更新工具数据，确保数据符合预期
+UPDATE `tool` SET 
+    `name` = '视频编辑器',
+    `description` = '专业视频编辑工具',
+    `tool_type` = 'NORMAL',
+    `url` = '/tools/video-editor',
+    `is_default` = 1
+WHERE `id` = 1;
+
+UPDATE `tool` SET 
+    `name` = '内容生成AI',
+    `description` = 'AI内容创作助手', 
+    `tool_type` = 'AGENT',
+    `url` = '/tools/ai-content',
+    `is_default` = 1
+WHERE `id` = 2;
+
+UPDATE `tool` SET 
+    `name` = '股票分析工具',
+    `description` = '实时股票分析平台',
+    `tool_type` = 'NORMAL', 
+    `url` = '/tools/stock-analyzer',
+    `is_default` = 0
+WHERE `id` = 3;
+
+-- 如果还有其他工具ID，继续更新
+INSERT INTO `tool` (`id`, `name`, `description`, `icon`, `tool_type`, `url`, `is_default`, `status`) VALUES
+(4, '投资顾问AI', 'AI投资建议助手', '/icons/ai-advisor.png', 'AGENT', '/tools/ai-advisor', 0, 1),
+(5, '代码生成器', '智能代码生成工具', '/icons/code-generator.png', 'AGENT', '/tools/code-generator', 0, 1),
+(6, '设计助手', 'AI设计创意工具', '/icons/design-assistant.png', 'AGENT', '/tools/design-assistant', 0, 1),
+(7, '通用计算器', '多功能计算器工具', '/icons/calculator.png', 'NORMAL', '/tools/calculator', 1, 1),
+(8, '财经新闻爬虫', '实时财经新闻抓取工具', '/icons/news-crawler.png', 'NORMAL', '/tools/news-crawler', 0, 1),
+(9, '经济指标分析', 'AI经济指标分析助手', '/icons/economic-analysis.png', 'AGENT', '/tools/economic-analysis', 0, 1)
+ON DUPLICATE KEY UPDATE 
+    name=VALUES(name), 
+    description=VALUES(description), 
+    icon=VALUES(icon), 
+    tool_type=VALUES(tool_type), 
+    url=VALUES(url), 
+    is_default=VALUES(is_default), 
+    status=VALUES(status);
+
+-- 清理可能错误的tool_scope数据
+DELETE FROM `tool_scope` WHERE `tool_id` NOT IN (1,2,3,4,5,6,7,8,9);
+
+-- 重新插入正确的tool_scope关联数据
+INSERT INTO `tool_scope` (`tool_id`, `scope_type`, `target_id`) VALUES
+-- 全局工具
+(7, 'ALL', NULL),
+-- 短视频主播类别工具 (分类ID=1)
+(1, 'CATEGORY', 1),
+(2, 'CATEGORY', 1), 
+-- 炒股类别工具 (分类ID=2)
+(3, 'CATEGORY', 2),
+(4, 'CATEGORY', 2),
+-- 财经类别工具 (分类ID=3) 
+(8, 'CATEGORY', 3),
+(9, 'CATEGORY', 3),
+-- 程序员类别工具 (分类ID=4)
+(5, 'CATEGORY', 4),
+-- 设计师类别工具 (分类ID=5)
+(6, 'CATEGORY', 5)
+ON DUPLICATE KEY UPDATE tool_id=VALUES(tool_id), scope_type=VALUES(scope_type), target_id=VALUES(target_id);
+
+-- 验证多对多关系查询
+-- 查询短视频主播类别(ID=1)的工具：应该返回工具1,2,7
+-- SELECT DISTINCT t.* FROM tool t LEFT JOIN tool_scope ts ON t.id = ts.tool_id WHERE t.status = 1 AND (ts.scope_type = 'ALL' OR (ts.scope_type = 'CATEGORY' AND ts.target_id = 1));
+
+-- 查询炒股类别(ID=2)的工具：应该返回工具3,4,7  
+-- SELECT DISTINCT t.* FROM tool t LEFT JOIN tool_scope ts ON t.id = ts.tool_id WHERE t.status = 1 AND (ts.scope_type = 'ALL' OR (ts.scope_type = 'CATEGORY' AND ts.target_id = 2));
+
+-- 查询财经类别(ID=3)的工具：应该返回工具7,8,9
+-- SELECT DISTINCT t.* FROM tool t LEFT JOIN tool_scope ts ON t.id = ts.tool_id WHERE t.status = 1 AND (ts.scope_type = 'ALL' OR (ts.scope_type = 'CATEGORY' AND ts.target_id = 3));
