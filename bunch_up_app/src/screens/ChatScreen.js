@@ -12,6 +12,7 @@ import useWebSocket from '../hooks/useWebSocket';
 import { fetchGroupsByCategory, fetchMessagesByGroup, fetchGroupOnlineCount } from '../api/chatAPI';
 import { formatChatTime, shouldShowTime, formatFullDateTime, isSameDay } from '../utils/timeUtils';
 import AIToolBar from '../components/AIToolBar';
+import GameToolBar from '../components/GameToolBar';
 
 const ChatScreen = ({ navigation, route }) => {
   const { category } = route.params || {};
@@ -20,6 +21,7 @@ const ChatScreen = ({ navigation, route }) => {
   const [messages, setMessages] = useState([]);
   const [groups, setGroups] = useState([]);
   const [onlineCount, setOnlineCount] = useState(0);
+  const [userPoints, setUserPoints] = useState(0);
   const scrollViewRef = useRef();
   const subscription = useRef(null);
 
@@ -120,6 +122,13 @@ const ChatScreen = ({ navigation, route }) => {
       sendMessage('/app/chat.send', newMessage);
       setMessage('');
     }
+  };
+
+  // 处理游戏积分获得
+  const handlePointsEarned = (points) => {
+    setUserPoints(prev => prev + points);
+    // 这里可以添加显示积分获得的Toast提示
+    console.log(`获得 ${points} 积分!`);
   };
   
   const handleKeyPress = (e) => {
@@ -258,7 +267,10 @@ const ChatScreen = ({ navigation, route }) => {
       <View style={styles.chatArea}>
         <View style={styles.chatHeader}>
           <Text style={styles.chatTitle}>{currentGroup?.name || '选择分组'}</Text>
-          <Text style={styles.chatSubtitle}>{onlineCount}人</Text>
+          <View style={styles.headerRight}>
+            <Text style={styles.pointsDisplay}>积分: {userPoints}</Text>
+            <Text style={styles.chatSubtitle}>{onlineCount}人</Text>
+          </View>
         </View>
 
         <ScrollView
@@ -293,11 +305,18 @@ const ChatScreen = ({ navigation, route }) => {
         </View>
       </View>
 
-      {/* AI工具栏 */}
-      <AIToolBar categoryId={category?.id} onToolClick={tool => {
-        // 这里可以弹窗或跳转工具详情
-        alert(`点击了工具：${tool.name}`);
-      }} />
+      {/* AI工具栏和游戏工具栏 */}
+      <View style={styles.toolbarContainer}>
+        <AIToolBar categoryId={category?.id} onToolClick={tool => {
+          // 这里可以弹窗或跳转工具详情
+          alert(`点击了工具：${tool.name}`);
+        }} />
+        <GameToolBar 
+          groupId={currentGroup?.id}
+          groupName={currentGroup?.name}
+          onPointsEarned={handlePointsEarned}
+        />
+      </View>
     </View>
   );
 };
@@ -439,6 +458,7 @@ const styles = StyleSheet.create({
   chatHeader: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
@@ -446,10 +466,18 @@ const styles = StyleSheet.create({
     backgroundColor: '#f8f9fa',
   },
   chatTitle: {
-    flex: 1,
     fontSize: 14,
     fontWeight: '600',
     color: '#1976d2',
+  },
+  headerRight: {
+    alignItems: 'flex-end',
+  },
+  pointsDisplay: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#FF6B6B',
+    marginBottom: 2,
   },
   chatSubtitle: {
     fontSize: 11,
@@ -602,6 +630,10 @@ const styles = StyleSheet.create({
   timeText: {
     fontSize: 11,
     color: '#999999',
+  },
+  toolbarContainer: {
+    flexDirection: 'column',
+    height: '100%',
   },
 });
 

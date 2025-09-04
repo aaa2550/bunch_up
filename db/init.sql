@@ -313,3 +313,44 @@ ON DUPLICATE KEY UPDATE tool_id=VALUES(tool_id), scope_type=VALUES(scope_type), 
 
 -- 查询财经类别(ID=3)的工具：应该返回工具7,8,9
 -- SELECT DISTINCT t.* FROM tool t LEFT JOIN tool_scope ts ON t.id = ts.tool_id WHERE t.status = 1 AND (ts.scope_type = 'ALL' OR (ts.scope_type = 'CATEGORY' AND ts.target_id = 3));
+
+-- ========================================
+-- 2024-08-25 更新: 添加游戏功能相关表
+-- ========================================
+
+-- 游戏房间表
+CREATE TABLE IF NOT EXISTS `game_room` (
+    `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '房间自增ID',
+    `room_id` VARCHAR(100) NOT NULL COMMENT '房间ID（通常是groupId_gameType格式）',
+    `game_type` VARCHAR(50) NOT NULL COMMENT '游戏类型：snake, tetris等',
+    `group_id` BIGINT NOT NULL COMMENT '所属聊天分组ID',
+    `game_state` TEXT DEFAULT NULL COMMENT '游戏状态JSON',
+    `status` VARCHAR(20) DEFAULT 'waiting' COMMENT '房间状态：waiting, playing, ended',
+    `max_players` INT DEFAULT 10 COMMENT '最大玩家数',
+    `current_players` INT DEFAULT 0 COMMENT '当前玩家数',
+    `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_room_id` (`room_id`),
+    KEY `idx_game_type` (`game_type`),
+    KEY `idx_group_id` (`group_id`),
+    KEY `idx_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='游戏房间表';
+
+-- 游戏玩家表
+CREATE TABLE IF NOT EXISTS `game_player` (
+    `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '玩家记录ID',
+    `room_id` VARCHAR(100) NOT NULL COMMENT '游戏房间ID',
+    `user_id` BIGINT NOT NULL COMMENT '玩家用户ID',
+    `player_name` VARCHAR(50) NOT NULL COMMENT '玩家昵称',
+    `score` INT DEFAULT 0 COMMENT '当前得分',
+    `player_state` TEXT DEFAULT NULL COMMENT '玩家状态JSON（如蛇的位置等）',
+    `status` VARCHAR(20) DEFAULT 'playing' COMMENT '玩家状态：playing, game_over, disconnected',
+    `join_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '加入时间',
+    `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_room_user` (`room_id`, `user_id`),
+    KEY `idx_room_id` (`room_id`),
+    KEY `idx_user_id` (`user_id`),
+    KEY `idx_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='游戏玩家表';

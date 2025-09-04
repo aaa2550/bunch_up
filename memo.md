@@ -187,17 +187,128 @@
 - **效果**: 聊天界面更加简洁，输入区域视觉统一
 - **状态**: ✅ 修复完成 
 
-### 后端Java代码规范修改 (2024-08-04 更新)
-- **转换器层规范**:
-  - 创建了 `UserConverter` 和 `CategoryConverter` 转换器类
-  - 使用MapStruct框架进行DO与DTO转换
-  - 遵循命名规范：`convertToDTO` 和 `convertToDO` 方法
-  - 包含单个对象、列表、分页的转换方法
-- **Repository层规范**:
-  - 修改 `UserRepository` 和 `CategoryRepository` 接口
-  - 继承 `IService<Entity>` 而不是直接操作DO
-  - 使用转换器进行DO与DTO转换
-  - 遵循命名规范：`find`(查多条)、`get`(查单条)、`save`、`update`、`delete`
+### 贪吃蛇游戏功能完整实现 (2024-08-25 更新)
+- **需求**: 在聊天页面增加多人互动的贪吃蛇游戏功能
+- **具体要求**:
+  - 聊天窗口合适位置增加游戏入口，提示为"游戏换积分"
+  - 前端为游戏创建单独目录管理，支持未来扩展其他游戏
+  - 多人互动游戏，每个用户控制自己的蛇
+  - 与服务端联动，使用WebSocket进行实时通信
+  - 完成前端和后端Java功能
+
+- **前端实现**:
+  - 创建游戏目录结构 `/src/games/`
+  - 实现 `GameManager.js` 游戏管理组件，支持扩展多种游戏
+  - 实现 `SnakeGame.js` 贪吃蛇核心游戏组件，20x20网格，多人颜色区分
+  - 创建 `gameAPI.js` 游戏相关API接口
+  - 在ChatScreen中添加🎮游戏按钮，点击弹出游戏管理器
+  - 添加积分显示和获取积分功能
+  - WebSocket实时通信支持游戏状态同步
+
+- **后端实现**:
+  - 创建游戏相关数据库表：`game_room`（游戏房间）、`game_player`（游戏玩家）
+  - 实现游戏实体类：`GameRoomDO`、`GamePlayerDO`
+  - 实现游戏DTO类：`GameRoom`、`GamePlayer`、`GameMessage`
+  - 实现游戏Mapper：`GameRoomMapper`、`GamePlayerMapper`
+  - 实现游戏服务：`GameService`、`GameServiceImpl`
+  - 实现游戏REST控制器：`GameController`
+  - 实现游戏WebSocket控制器：`GameWebSocketController`
+  - 支持加入/离开游戏、开始游戏、更新得分、玩家移动、游戏结束等功能
+
+- **技术特点**:
+  - 模块化设计，游戏功能独立，易于扩展
+  - WebSocket实时通信，支持多人互动
+  - JSON序列化存储游戏状态
+  - 积分系统集成，游戏得分转换为用户积分
+  - 房间管理，支持多个游戏房间并发
+  - 响应式设计，适配Web界面
+
+- **游戏功能**:
+  - 多人贪吃蛇，最多8人同时游戏
+  - 每个玩家控制自己的蛇，不同颜色区分
+  - 实时同步蛇的位置和游戏状态
+  - 得分系统，吃食物获得积分
+  - 游戏结束检测，碰撞边界或自身结束游戏
+  - 排行榜功能（预留接口）
+
+- **文件结构**:
+  ```
+  前端:
+  /src/games/
+    ├── GameManager.js          # 游戏管理器
+    └── snake/
+        └── components/
+            └── SnakeGame.js    # 贪吃蛇游戏组件
+  /src/api/gameAPI.js           # 游戏API接口
+  
+  后端:
+  /entity/GameRoomDO.java       # 游戏房间实体
+  /entity/GamePlayerDO.java     # 游戏玩家实体
+  /dto/GameRoom.java            # 游戏房间DTO
+  /dto/GamePlayer.java          # 游戏玩家DTO
+  /dto/GameMessage.java         # 游戏消息DTO
+  /mapper/GameRoomMapper.java   # 游戏房间数据访问
+  /mapper/GamePlayerMapper.java # 游戏玩家数据访问
+  /service/GameService.java     # 游戏服务接口
+  /service/impl/GameServiceImpl.java # 游戏服务实现
+  /controller/GameController.java     # 游戏REST控制器
+  /controller/GameWebSocketController.java # 游戏WebSocket控制器
+  
+  数据库:
+  /db/init.sql                  # 新增游戏相关表结构
+  ```
+
+- **API接口**:
+  - `POST /api/v1/game/join` - 加入游戏房间
+  - `POST /api/v1/game/leave` - 离开游戏房间
+  - `GET /api/v1/game/room/{roomId}` - 获取游戏房间信息
+  - `POST /api/v1/game/start` - 开始游戏
+  - `POST /api/v1/game/score` - 更新玩家得分
+  - `POST /api/v1/game/state` - 更新玩家状态
+  - `POST /api/v1/game/end` - 游戏结束
+  - `GET /api/v1/game/room/{roomId}/players` - 获取房间玩家列表
+  - `GET /api/v1/game/leaderboard` - 获取游戏排行榜
+
+- **WebSocket消息**:
+  - `/app/game.join` - 加入游戏
+  - `/app/game.leave` - 离开游戏
+  - `/app/game.start` - 开始游戏
+  - `/app/game.move` - 玩家移动
+  - `/app/game.score` - 得分更新
+  - `/app/game.over` - 游戏结束
+  - `/topic/game/{roomId}` - 游戏房间消息订阅
+
+- **状态**: ✅ 完整功能实现完成
+
+### 游戏入口调整和错误修复 (2024-08-27 更新)
+- **需求调整**: 
+  - 将游戏入口从AI工具栏上方的程序坦移动到AI工具栏下方
+  - 游戏入口要能展示不同的游戏，目前只有贪吃蛇
+  - 需要明确告知用户是与同小组的用户一起玩的
+
+- **错误修复**:
+  - **500错误问题**: 后端端口8080被占用，重启服务解决
+  - **403错误问题**: 在SecurityConfig中添加了`/api/v1/game/**`到允许访问的路径列表
+  - **硬编码问题**: 修复GameController中的硬编码userId和groupId，正确从roomId解析groupId
+  - **前端结构问题**: 修复ChatScreen的JSX结构错误
+
+- **功能调整**:
+  - **创建GameToolBar组件**: 专门的游戏工具栏组件，放在AI工具栏下方
+  - **移除程序坐游戏按钮**: 从左侧程序坐中移除🎮游戏按钮
+  - **游戏显示优化**: 每个游戏显示“与同组用户一起玩”和当前分组名称
+  - **布局优化**: 使用toolbarContainer将AI工具栏和游戏工具栏统一管理
+
+- **技术修复**:
+  - **API参数修复**: 修复GameToolBar中`gameRoom.id`为`gameRoom.roomId`
+  - **房间ID解析**: 后端正确解析roomId格式`{groupId}_{gameType}`
+  - **错误处理**: 添加了try-catch错误处理和用户友好错误提示
+
+- **文档更新**:
+  - **API文档**: 在api.md中添加了游戏相关接口文档
+  - **WebSocket文档**: 添加了游戏相关WebSocket消息说明
+  - **房间ID格式**: 说明了roomId的命名规则
+
+- **状态**: ✅ 游戏入口调整完成，错误修复完成
   - 使用 `queryChain()` 和 `updateChain()` 方法，禁止原生SQL
 - **Service层规范**:
   - 修改 `UserService` 和 `CategoryService` 接口

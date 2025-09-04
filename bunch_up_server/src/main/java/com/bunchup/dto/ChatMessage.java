@@ -2,10 +2,13 @@ package com.bunchup.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import lombok.experimental.Accessors;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 
 @Data
+@Accessors(chain = true)
 @Schema(description = "聊天消息")
 public class ChatMessage {
     
@@ -34,7 +37,7 @@ public class ChatMessage {
     private String groupName;
     
     @Schema(description = "发送时间")
-    private LocalDateTime sendTime;
+    private Date sendTime;
     
     @Schema(description = "是否是自己发送的消息")
     private Boolean isSelf;

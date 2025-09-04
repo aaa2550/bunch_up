@@ -316,4 +316,91 @@
 **响应示例**:
 ```
 抱团后端服务启动成功！
-``` 
+```
+
+## 游戏相关接口
+
+### 1. 加入游戏房间
+**接口地址**: `POST /api/v1/game/join`  
+**请求方法**: POST  
+**Content-Type**: application/json  
+**认证**: 不需要认证（临时）
+
+**请求参数**:
+```json
+{
+  "roomId": "1_snake",
+  "gameType": "snake"
+}
+```
+
+**响应示例**:
+```json
+{
+  "code": 0,
+  "message": "操作成功",
+  "data": {
+    "id": 1,
+    "roomId": "1_snake",
+    "gameType": "snake",
+    "groupId": 1,
+    "status": "waiting",
+    "maxPlayers": 8,
+    "currentPlayers": 1,
+    "createTime": "2024-08-25T21:00:00",
+    "updateTime": "2024-08-25T21:00:00",
+    "players": [
+      {
+        "id": 1,
+        "roomId": "1_snake",
+        "userId": 1,
+        "playerName": "玩家1",
+        "score": 0,
+        "status": "playing",
+        "joinTime": "2024-08-25T21:00:00",
+        "updateTime": "2024-08-25T21:00:00"
+      }
+    ]
+  },
+  "timestamp": 1640995200000
+}
+```
+
+### 2. 离开游戏房间
+**接口地址**: `POST /api/v1/game/leave`  
+**请求方法**: POST  
+**Content-Type**: application/json  
+
+**请求参数**:
+```json
+{
+  "roomId": "1_snake"
+}
+```
+
+### 房间ID格式说明
+
+游戏房间ID格式为：`{groupId}_{gameType}`
+- groupId: 聊天分组ID  
+- gameType: 游戏类型（如：snake）
+- 示例: "1_snake" 表示分组1的贪吃蛇游戏房间
+
+## WebSocket接口说明
+
+### 连接地址
+`ws://localhost:8080/ws`
+
+### 聊天相关消息
+- `/app/chat.send` - 发送聊天消息
+- `/app/chat.join` - 加入聊天群组
+- `/app/chat.leave` - 离开聊天群组
+- `/topic/chat/{groupId}` - 订阅群组消息
+
+### 游戏相关消息
+- `/app/game.join` - 加入游戏房间
+- `/app/game.leave` - 离开游戏房间
+- `/app/game.start` - 开始游戏
+- `/app/game.move` - 玩家移动
+- `/app/game.score` - 得分更新
+- `/app/game.over` - 游戏结束
+- `/topic/game/{roomId}` - 订阅游戏房间消息 

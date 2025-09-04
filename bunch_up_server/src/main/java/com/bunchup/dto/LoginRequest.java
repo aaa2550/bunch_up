@@ -18,21 +18,4 @@ public class LoginRequest {
     @Schema(description = "密码", example = "123456")
     @NotBlank(message = "密码不能为空")
     private String password;
-    
-    // Getters and Setters
-    public String getPhone() {
-        return phone;
-    }
-    
-    public void setPhone(String phone) {
-        this.phone = phone;
-    }
-    
-    public String getPassword() {
-        return password;
-    }
-    
-    public void setPassword(String password) {
-        this.password = password;
-    }
 } 

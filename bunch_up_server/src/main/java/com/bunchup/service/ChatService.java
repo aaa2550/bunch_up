@@ -11,7 +11,7 @@ public interface ChatService {
     
     List<ChatMessage> getMessagesByGroup(Long groupId, int limit);
     
-    ChatMessage saveMessage(ChatMessage message);
+    void saveMessage(ChatMessage message);
     
     void initTestData();
 } 

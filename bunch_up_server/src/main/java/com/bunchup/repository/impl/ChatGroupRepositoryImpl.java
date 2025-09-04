@@ -3,6 +3,7 @@ package com.bunchup.repository.impl;
 import com.bunchup.convert.ChatGroupConverter;
 import com.bunchup.dto.ChatGroup;
 import com.bunchup.entity.ChatGroupDO;
+import com.bunchup.enums.StatusEnum;
 import com.bunchup.mapper.ChatGroupMapper;
 import com.bunchup.repository.ChatGroupRepository;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
@@ -18,10 +19,11 @@ public class ChatGroupRepositoryImpl extends ServiceImpl<ChatGroupMapper, ChatGr
     public List<ChatGroup> findByCategoryId(Long categoryId) {
         List<ChatGroupDO> chatGroupDOS = queryChain()
                 .eq(ChatGroupDO::getCategoryId, categoryId)
+                .eq(ChatGroupDO::getStatus, StatusEnum.YES.ordinal())
                 .list();
         return ChatGroupConverter.INSTANCE.convertToDTO(chatGroupDOS);
     }
-    
+
     @Override
     public Integer getGroupOnlineCount(Long groupId) {
         // 这里可以从WebSocket连接池或者Redis中获取在线人数
