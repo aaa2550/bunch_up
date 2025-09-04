@@ -1,0 +1,54 @@
+
+> bunch-up-app@1.0.0 web
+> webpack serve --mode development
+
+<i> [webpack-dev-server] [HPM] Proxy created: /api  -> http://localhost:8080
+<i> [webpack-dev-server] Project is running at:
+<i> [webpack-dev-server] Loopback: http://localhost:3000/, http://[::1]:3000/
+<i> [webpack-dev-server] On Your Network (IPv4): http://192.168.3.20:3000/
+<i> [webpack-dev-server] On Your Network (IPv6): http://[fdd2:d029:cafe:13bd:442:6b4f:98ea:e3ad]:3000/
+<i> [webpack-dev-server] Content not from webpack is served from '/Users/king/cursor_ai/bunch_up/bunch_up_app/public' directory
+<i> [webpack-dev-server] 404s will fallback to '/index.html'
+asset bundle.js 3.11 MiB [emitted] (name: main)
+asset index.html 866 bytes [emitted]
+orphan modules 148 KiB [orphan] 61 modules
+runtime modules 27.1 KiB 13 modules
+modules by path ./node_modules/ 2.13 MiB 313 modules
+modules by path ../node_modules/ 193 KiB
+  modules by path ../node_modules/sockjs-client/lib/ 97.8 KiB 53 modules
+  modules by path ../node_modules/@stomp/stompjs/esm6/*.js 59.8 KiB 9 modules
+  modules by path ../node_modules/sockjs-client/node_modules/ 14.9 KiB 3 modules
+  + 4 modules
+modules by path ./src/ 177 KiB
+  modules by path ./src/store/ 12.4 KiB 4 modules
+  modules by path ./src/screens/*.js 73.3 KiB 4 modules
+  modules by path ./src/api/*.js 22.6 KiB 4 modules
+  modules by path ./src/components/*.js 20.9 KiB 3 modules
+  modules by path ./src/*.js 15.2 KiB 2 modules
+  + 3 modules
+webpack 5.101.0 compiled successfully in 3135 ms
+<i> [webpack-dev-middleware] wait until bundle finished: /bundle.js
+assets by status 866 bytes [cached] 1 asset
+assets by path *.js 3.13 MiB
+  asset bundle.js 3.11 MiB [emitted] (name: main)
+  asset main.268e30d1fcdcf3c08cdf.hot-update.js 17.9 KiB [emitted] [immutable] [hmr] (name: main)
+asset main.268e30d1fcdcf3c08cdf.hot-update.json 28 bytes [emitted] [immutable] [hmr]
+Entrypoint main 3.13 MiB = bundle.js 3.11 MiB main.268e30d1fcdcf3c08cdf.hot-update.js 17.9 KiB
+cached modules 2.63 MiB [cached] 462 modules
+runtime modules 27.1 KiB 13 modules
+./src/components/GameToolBar.js 12.8 KiB [built] [code generated]
+webpack 5.101.0 compiled successfully in 351 ms
+assets by status 866 bytes [cached] 1 asset
+assets by path *.js 3.13 MiB
+  asset bundle.js 3.11 MiB [emitted] (name: main)
+  asset main.352b4e95cc1134b9f1ba.hot-update.js 17.9 KiB [emitted] [immutable] [hmr] (name: main)
+asset main.352b4e95cc1134b9f1ba.hot-update.json 28 bytes [emitted] [immutable] [hmr]
+Entrypoint main 3.13 MiB = bundle.js 3.11 MiB main.352b4e95cc1134b9f1ba.hot-update.js 17.9 KiB
+cached modules 2.63 MiB [cached] 462 modules
+runtime modules 27.1 KiB 13 modules
+./src/components/GameToolBar.js 12.8 KiB [built] [code generated]
+webpack 5.101.0 compiled successfully in 185 ms
+assets by status 3.11 MiB [cached] 2 assets
+cached modules 2.63 MiB (javascript) 27.1 KiB (runtime) [cached] 475 modules
+./src/components/GameToolBar.js 12.8 KiB [built]
+webpack 5.101.0 compiled successfully in 351 ms
