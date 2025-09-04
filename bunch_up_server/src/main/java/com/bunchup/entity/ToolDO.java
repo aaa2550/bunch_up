@@ -19,7 +19,7 @@ public class ToolDO {
     private String icon;
     private String toolType; // NORMAL-普通工具，AGENT-AI工具
     private String url; // 工具URL
-    private Integer isDefault;
+    private Boolean isDefault;
     private Integer status; // 1 正常 0 禁用
     private Date createTime;
     private Date updateTime;

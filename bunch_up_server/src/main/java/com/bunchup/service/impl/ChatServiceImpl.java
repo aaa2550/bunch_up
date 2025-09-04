@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -79,8 +80,8 @@ public class ChatServiceImpl extends ServiceImpl<ChatMessageMapper, ChatMessageD
         group.setAvatar("/icons/group.png");
         group.setCategoryId(categoryId);
         group.setStatus(1);
-        group.setCreateTime(LocalDateTime.now());
-        group.setUpdateTime(LocalDateTime.now());
+        group.setCreateTime(new Date());
+        group.setUpdateTime(new Date());
         return group;
     }
 
@@ -105,7 +106,9 @@ public class ChatServiceImpl extends ServiceImpl<ChatMessageMapper, ChatMessageD
             message.setGroupId(groupId);
             message.setContent(messages[i]);
             message.setMessageType(1);
-            message.setSendTime(LocalDateTime.now().minusHours(i));
+            Calendar calendar = Calendar.getInstance();
+            calendar.set(Calendar.MINUTE, i);
+            message.setSendTime(calendar.getTime());
             message.setStatus(1);
             message.setUserName(userNames[i % 3]); // 设置用户昵称
             chatMessageMapper.insert(message);

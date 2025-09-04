@@ -2,12 +2,14 @@ package com.bunchup.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
+import lombok.Data;
 
 /**
  * 注册请求DTO
  * 
  * @author bunchup
  */
+@Data
 @Schema(description = "注册请求")
 public class RegisterRequest {
     

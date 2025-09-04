@@ -1,6 +1,7 @@
 package com.bunchup.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
 
 import java.util.Date;
 
@@ -9,6 +10,7 @@ import java.util.Date;
  *
  * @author bunchup
  */
+@Data
 @Schema(description = "类别DTO")
 public class Category {
 

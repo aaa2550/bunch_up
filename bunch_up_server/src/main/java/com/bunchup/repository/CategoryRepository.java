@@ -11,6 +11,4 @@ public interface CategoryRepository extends IService<CategoryDO> {
     List<Category> find();
     Category get(Long id);
     Category save(Category category);
-    Category update(Category category);
-    void delete(Long id);
-} 
+}

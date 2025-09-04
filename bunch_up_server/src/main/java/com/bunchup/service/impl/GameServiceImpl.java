@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -43,8 +44,8 @@ public class GameServiceImpl implements GameService {
             roomDO.setStatus("waiting");
             roomDO.setMaxPlayers(gameType.equals("snake") ? 8 : 4); // 贪吃蛇最多8人
             roomDO.setCurrentPlayers(0);
-            roomDO.setCreateTime(LocalDateTime.now());
-            roomDO.setUpdateTime(LocalDateTime.now());
+            roomDO.setCreateTime(new Date());
+            roomDO.setUpdateTime(new Date());
             gameRoomMapper.insert(roomDO);
         }
         
@@ -58,19 +59,19 @@ public class GameServiceImpl implements GameService {
             playerDO.setPlayerName(playerName);
             playerDO.setScore(0);
             playerDO.setStatus("playing");
-            playerDO.setJoinTime(LocalDateTime.now());
-            playerDO.setUpdateTime(LocalDateTime.now());
+            playerDO.setJoinTime(new Date());
+            playerDO.setUpdateTime(new Date());
             gamePlayerMapper.insert(playerDO);
             
             // 更新房间玩家数量
             Integer activeCount = gamePlayerMapper.countActivePlayersByRoom(roomId);
             roomDO.setCurrentPlayers(activeCount);
-            roomDO.setUpdateTime(LocalDateTime.now());
+            roomDO.setUpdateTime(new Date());
             gameRoomMapper.update(roomDO);
         } else {
             // 重新激活玩家
             existingPlayer.setStatus("playing");
-            existingPlayer.setUpdateTime(LocalDateTime.now());
+            existingPlayer.setUpdateTime(new Date());
             gamePlayerMapper.update(existingPlayer);
         }
         
@@ -83,7 +84,7 @@ public class GameServiceImpl implements GameService {
         GamePlayerDO playerDO = gamePlayerMapper.selectByRoomAndUser(roomId, userId);
         if (playerDO != null) {
             playerDO.setStatus("disconnected");
-            playerDO.setUpdateTime(LocalDateTime.now());
+            playerDO.setUpdateTime(new Date());
             gamePlayerMapper.update(playerDO);
             
             // 更新房间玩家数量
@@ -91,7 +92,7 @@ public class GameServiceImpl implements GameService {
             if (roomDO != null) {
                 Integer activeCount = gamePlayerMapper.countActivePlayersByRoom(roomId);
                 roomDO.setCurrentPlayers(activeCount);
-                roomDO.setUpdateTime(LocalDateTime.now());
+                roomDO.setUpdateTime(new Date());
                 gameRoomMapper.update(roomDO);
             }
         }
@@ -109,7 +110,7 @@ public class GameServiceImpl implements GameService {
         GameRoomDO roomDO = gameRoomMapper.selectByRoomId(roomId);
         if (roomDO != null && "waiting".equals(roomDO.getStatus())) {
             roomDO.setStatus("playing");
-            roomDO.setUpdateTime(LocalDateTime.now());
+            roomDO.setUpdateTime(new Date());
             gameRoomMapper.update(roomDO);
         }
     }
@@ -120,7 +121,7 @@ public class GameServiceImpl implements GameService {
         GamePlayerDO playerDO = gamePlayerMapper.selectByRoomAndUser(roomId, userId);
         if (playerDO != null) {
             playerDO.setScore(score);
-            playerDO.setUpdateTime(LocalDateTime.now());
+            playerDO.setUpdateTime(new Date());
             gamePlayerMapper.update(playerDO);
         }
     }
@@ -133,7 +134,7 @@ public class GameServiceImpl implements GameService {
             try {
                 String stateJson = objectMapper.writeValueAsString(playerState);
                 playerDO.setPlayerState(stateJson);
-                playerDO.setUpdateTime(LocalDateTime.now());
+                playerDO.setUpdateTime(new Date());
                 gamePlayerMapper.update(playerDO);
             } catch (Exception e) {
                 throw new RuntimeException("Failed to update player state", e);
@@ -148,7 +149,7 @@ public class GameServiceImpl implements GameService {
         if (playerDO != null) {
             playerDO.setScore(finalScore);
             playerDO.setStatus("game_over");
-            playerDO.setUpdateTime(LocalDateTime.now());
+            playerDO.setUpdateTime(new Date());
             gamePlayerMapper.update(playerDO);
         }
         
@@ -163,7 +164,7 @@ public class GameServiceImpl implements GameService {
             GameRoomDO roomDO = gameRoomMapper.selectByRoomId(roomId);
             if (roomDO != null) {
                 roomDO.setStatus("ended");
-                roomDO.setUpdateTime(LocalDateTime.now());
+                roomDO.setUpdateTime(new Date());
                 gameRoomMapper.update(roomDO);
             }
         }

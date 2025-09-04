@@ -5,6 +5,7 @@ import com.bunchup.common.R;
 import com.bunchup.dto.ChatMessage;
 import com.bunchup.dto.WebSocketMessage;
 import com.bunchup.service.ChatService;
+import com.bunchup.service.MessageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -30,6 +31,9 @@ public class ChatController {
     @Autowired
     private ChatService chatService;
 
+    @Autowired
+    private MessageService messageService;
+
     @GetMapping("/group/{groupId}/messages")
     public R<List<ChatMessage>> getGroupMessages(@PathVariable Long groupId) {
         // 获取最近200条消息
@@ -47,47 +51,24 @@ public class ChatController {
         if (chatMessage.getMessageType() == null) {
             chatMessage.setMessageType(1); // 默认文本消息
         }
-        // 保存消息到数据库
-        chatService.saveMessage(chatMessage);
-
-        // 广播消息到群组
-        String destination = "/topic/chat/" + chatMessage.getGroupId();
-        messagingTemplate.convertAndSend(destination, new WebSocketMessage("CHAT", chatMessage));
-
+        messageService.send(chatMessage);
         return new WebSocketMessage("CHAT", chatMessage);
     }
 
     @MessageMapping("/chat.join")
     public void joinGroup(@Payload String message, SimpMessageHeaderAccessor headerAccessor) {
-        ChatMessage joinMessage = JSON.parseObject(message, ChatMessage.class);
+        ChatMessage chatMessage = JSON.parseObject(message, ChatMessage.class);
 
-        // 验证用户身份
-        if (headerAccessor.getUser() == null) {
-            throw new RuntimeException("用户未认证，无法加入群组");
-        }
-
-        String username = headerAccessor.getUser().getName();
-
-        // 订阅群组消息
-        String destination = "/topic/chat/" + joinMessage.getGroupId();
-        messagingTemplate.convertAndSend(destination,
-                new WebSocketMessage("JOIN", username + " 加入了群组"));
+        String username = Objects.requireNonNull(headerAccessor.getUser()).getName();
+        chatMessage.setUserName(username);
+        messageService.joinGroup(chatMessage);
     }
 
     @MessageMapping("/chat.leave")
     public void leaveGroup(@Payload String message, SimpMessageHeaderAccessor headerAccessor) {
-        ChatMessage leaveMessage = JSON.parseObject(message, ChatMessage.class);
-
-        // 验证用户身份
-        if (headerAccessor.getUser() == null) {
-            throw new RuntimeException("用户未认证，无法离开群组");
-        }
-
-        String username = headerAccessor.getUser().getName();
-
-        // 发送离开消息
-        String destination = "/topic/chat/" + leaveMessage.getGroupId();
-        messagingTemplate.convertAndSend(destination,
-                new WebSocketMessage("LEAVE", username + " 离开了群组"));
+        ChatMessage chatMessage = JSON.parseObject(message, ChatMessage.class);
+        String username = Objects.requireNonNull(headerAccessor.getUser()).getName();
+        chatMessage.setUserName(username);
+        messageService.leaveGroup(chatMessage);
     }
 } 
